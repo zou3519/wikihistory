@@ -27,14 +27,14 @@ def wiki2opm(title, maximum=None, rvstartid=0, warm=False):
         graph = OPMGraph.new_graph(NAME + '-' + VERSION)
 
     # For each revision...
-    next = witer.next()
+    rev = witer.next()
     i = 0
-    while next is not None and (maximum is None or i < maximum):
+    while rev is not None and (maximum is None or i < maximum):
         progress.next()
 
         if not warm:
             # psdiff against the previous revision.
-            (revid, comment, content) = next
+            (revid, comment, content) = rev
             content = content.split()
             ps = PatchSet.psdiff(revid, prev, content)
 
@@ -46,7 +46,7 @@ def wiki2opm(title, maximum=None, rvstartid=0, warm=False):
 
             prev = content
 
-        next = witer.next()
+        rev = witer.next()
         i += 1
 
     sys.stdout.write(' done.\n')

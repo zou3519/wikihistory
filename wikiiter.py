@@ -24,7 +24,7 @@ class WikiIter:
             return None
 
         # Check cache; else, query MediaWiki.
-        cachefile = os.path.join(self.dir, self.rvstartid)
+        cachefile = os.path.join(self.dir, str(self.rvstartid))
         if os.path.isfile(cachefile):
             doc = libxml2.parseFile(cachefile)
         else:
