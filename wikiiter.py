@@ -10,7 +10,7 @@ class WikiIter:
         self.api = wiki + '/w/api.php?format=xml&action=query&titles=' + \
                    title.replace(' ', '+') + '&prop=revisions' + \
                    '&rvprop=ids|flags|timestamp|user|size|comment|content' + \
-                   '&rvlimit=1&rvdir=newer&rvcontinue='
+                   '&rvlimit=1&rvdir=newer'
         self.dir = os.path.join('cache', title)
         self.rvcontinue = rvcontinue # Revision ID iterator.
 
@@ -28,8 +28,14 @@ class WikiIter:
         if os.path.isfile(cachefile):
             doc = libxml2.parseFile(cachefile)
         else:
-            doc = libxml2.parseDoc(
-                urllib2.urlopen(self.api + self.rvcontinue).read())
+            if self.rvcontinue == '0':
+                doc = libxml2.parseDoc(
+                    urllib2.urlopen(self.api + '&rvstartid=' + self.rvcontinue).read())
+
+            else:
+                doc = libxml2.parseDoc(
+                    urllib2.urlopen(self.api + '&rvcontinue=' + self.rvcontinue).read())
+            
             cachefile = open(cachefile, 'w')
             doc.saveTo(cachefile, encoding='UTF-8', format=1)
             cachefile.close()
