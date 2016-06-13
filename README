@@ -1,0 +1,20 @@
+This software needs the following packages (>sudo apt-get install $PACKAGE)
+python-libxml2
+python-bitstring
+python-pygraph
+
+This is how the software is supposed to work:
+
+First, run >wiki2opm.py 'Title'
+	1. It will get every revision of 'Title' from wikipedia.org using wikiiter.py
+           This data is saved in cache/Title/REVISION_ID
+	2. Then, it will difference the revisions using patch.py
+	   The difference is interpreted as a graph where X<-Y if Y changes X.
+	3. Finally, it will store and save everything in an opmgraph.py
+The final output should be a file 'data/Title-m${NUMBER_OF_REVISIONS}s${START_REVISION_ID}'
+This is a simple XML graph format called OPM. It is human-readable.
+
+Then, the tool >query.py 'opm_file.xml' starts a command-line prompt
+that lets you run various analyses on the OPM graph, including visualizations.
+I'll document these later, but they are essentially just PageRank variants,
+and colorizations of the graph based on score (called "heat maps").
