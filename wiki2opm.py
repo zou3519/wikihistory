@@ -14,12 +14,12 @@ VERSION = 'v0.1'
 WIKI = 'http://en.wikipedia.org/'
 
 
-def wiki2opm(title, maximum=None, rvstartid=0, warm=False):
+def wiki2opm(title, maximum=None, rvcontinue=0, warm=False):
     """wiki2opm converts a WikiIter-able page history to an OPM graph file."""
     if not os.path.isdir('data'):
         os.mkdir('data')
 
-    witer = WikiIter(WIKI, title, rvstartid=rvstartid)
+    witer = WikiIter(WIKI, title, rvcontinue=rvcontinue)
     progress = ProgressBar('Processing "' + title + '"', maximum=maximum)
     if not warm:
         prev = []
@@ -55,7 +55,7 @@ def wiki2opm(title, maximum=None, rvstartid=0, warm=False):
     if not warm:
         print 'Saving graph...'
         graph.save_to(os.path.join('data', title.replace(' ', '_') + '-m' +
-            str(i) + 's' + rvstartid + '.xml'))
+            str(i) + 's' + rvcontinue + '.xml'))
 
 
 def parse_args():
@@ -66,7 +66,7 @@ def parse_args():
                       type='int', dest='maximum', default=None,
                       help='process at most MAX revisions', metavar='MAX')
     parser.add_option('-s', '--start',
-                      type='str', dest='rvstartid', default='0',
+                      type='str', dest='rvcontinue', default='0',
                       help='start from START revid', metavar='START')
     parser.add_option('-w', '--warm',
                       action='store_true', dest='warm', default=False,
@@ -77,12 +77,12 @@ def parse_args():
     # Parser Errors
     if opts.maximum is not None and opts.maximum <= 0:
         parser.error('option --max must be greater than zero')
-    if opts.rvstartid < 0:
+    if opts.rvcontinue < 0:
         parser.error('option --start must be greater than or equal to zero')
     if len(args) != 1:
         parser.error('incorrect number of arguments')
 
-    wiki2opm(args[0], maximum=opts.maximum, rvstartid=opts.rvstartid,
+    wiki2opm(args[0], maximum=opts.maximum, rvcontinue=opts.rvcontinue,
         warm=opts.warm)
 
 
