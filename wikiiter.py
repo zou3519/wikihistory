@@ -5,14 +5,14 @@ import urllib2
 
 class WikiIter:
     """A WikiIter interprets a WikiMedia page history and returns revisions."""
-    def __init__(self, wiki, title, rvstartid=0):
+    def __init__(self, wiki, title, rvcontinue=0):
         # MediaWiki API query format.
         self.api = wiki + '/w/api.php?format=xml&action=query&titles=' + \
                    title.replace(' ', '+') + '&prop=revisions' + \
                    '&rvprop=ids|flags|timestamp|user|size|comment|content' + \
-                   '&rvlimit=1&rvdir=newer&rvstartid='
+                   '&rvlimit=1&rvdir=newer&rvcontinue='
         self.dir = os.path.join('cache', title)
-        self.rvstartid = rvstartid # Revision ID iterator.
+        self.rvcontinue = rvcontinue # Revision ID iterator.
 
         if not os.path.isdir(self.dir):
             os.makedirs(self.dir)
@@ -20,16 +20,16 @@ class WikiIter:
 
     def next(self):
         """next gets the next revision in this WikiIter."""
-        if self.rvstartid is None:
+        if self.rvcontinue is None:
             return None
 
         # Check cache; else, query MediaWiki.
-        cachefile = os.path.join(self.dir, str(self.rvstartid))
+        cachefile = os.path.join(self.dir, str(self.rvcontinue))
         if os.path.isfile(cachefile):
             doc = libxml2.parseFile(cachefile)
         else:
             doc = libxml2.parseDoc(
-                urllib2.urlopen(self.api + self.rvstartid).read())
+                urllib2.urlopen(self.api + self.rvcontinue).read())
             cachefile = open(cachefile, 'w')
             doc.saveTo(cachefile, encoding='UTF-8', format=1)
             cachefile.close()
@@ -39,11 +39,11 @@ class WikiIter:
         assert len(rev) == 1
 
         # Get next iter.
-        qc = doc.xpathEval('/api/query-continue/revisions')
+        qc = doc.xpathEval('/api/continue')
         if len(qc) == 1:
-            self.rvstartid = qc[0].prop('rvstartid')
+            self.rvcontinue = qc[0].prop('rvcontinue')
         elif len(qc) == 0:
-            self.rvstartid = None
+            self.rvcontinue = None
         else:
             assert False
 
