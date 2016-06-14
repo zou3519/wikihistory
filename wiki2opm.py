@@ -19,7 +19,7 @@ def wiki2opm(title, maximum=None, rvcontinue=0, warm=False):
     if not os.path.isdir('data'):
         os.mkdir('data')
 
-    witer = WikiIter(WIKI, title, rvcontinue=rvcontinue)
+    witer = WikiIter(WIKI, title, rvcontinue=rvcontinue)    
     progress = ProgressBar('Processing "' + title + '"', maximum=maximum)
     if not warm:
         prev = []
@@ -40,7 +40,7 @@ def wiki2opm(title, maximum=None, rvcontinue=0, warm=False):
 
             # Apply to the PatchModel and write dependencies to graph.
             depends = model.apply_patchset(ps)
-            graph.new_artifact(ps.psid, comment)
+            graph.new_artifact(ps.psid, revid)
             for d_psid in depends:
                 graph.new_wasDerivedFrom(d_psid, ps.psid)
 

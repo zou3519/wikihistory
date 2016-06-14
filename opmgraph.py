@@ -3,7 +3,7 @@ import math
 import os.path
 
 
-NAMESPACE = "http://openprovenance.org/model/v1.1.a"
+NAMESPACE = "http://openprovenance.org/model/opmx#"
 
 
 class OPMGraph:
@@ -21,7 +21,7 @@ class OPMGraph:
 
         # Create root and namespace.
         graph.root = graph.doc.newChild(None, "opmGraph", None)
-        graph.ns = graph.root.newNs(NAMESPACE, "opm")
+        graph.ns = graph.root.newNs(NAMESPACE, None)
         graph.root.setNs(graph.ns)
         # opmGraph id is set at write-time; see save_to, below.
 
@@ -32,7 +32,7 @@ class OPMGraph:
 
         # Create standard branches.
         graph.artifacts = None
-        graph.causalDependencies = None
+        graph.dependencies = None
 
         return graph
 
@@ -47,19 +47,19 @@ class OPMGraph:
         graph.ctxt.xpathRegisterNs('opm', NAMESPACE)
 
         # Query and assign root and namespace.
-        root = graph.ctxt.xpathEval('/opm:opmGraph')
+        root = graph.ctxt.xpathEval('/opmGraph')
         assert len(root) == 1
         graph.root = root[0]
         graph.ns = graph.root.ns()
 
         # Query and assign account.
-        accounts = graph.ctxt.xpathEval('/opm:opmGraph/opm:accounts')
+        accounts = graph.ctxt.xpathEval('/opmGraph/accounts')
         assert len(accounts) == 1
         graph.account = accounts[0].firstElementChild().prop('id')
         # XXX: This is dodgy; may change.
 
         # Query and assign standard branches.
-        artifacts = graph.ctxt.xpathEval('/opm:opmGraph/opm:artifacts')
+        artifacts = graph.ctxt.xpathEval('/opmGraph/artifacts')
         if not artifacts:
             graph.artifacts = None
         elif len(artifacts) == 1:
@@ -67,12 +67,12 @@ class OPMGraph:
         else:
             assert False
 
-        causalDependencies = graph.ctxt.xpathEval(
-            '/opm:opmGraph/opm:causalDependencies')
-        if not causalDependencies:
-            graph.causalDependencies = None
-        elif len(causalDependencies) == 1:
-            graph.causalDependencies = causalDependencies[0]
+        dependencies = graph.ctxt.xpathEval(
+            '/opmGraph/dependencies')
+        if not dependencies:
+            graph.dependencies = None
+        elif len(dependencies) == 1:
+            graph.dependencies = dependencies[0]
         else:
             assert False
 
@@ -89,9 +89,9 @@ class OPMGraph:
         labels = {}
 
         # Get nodes and labels.
-        for node in self.ctxt.xpathEval('/opm:opmGraph/opm:agents/*|' + \
-                                       '/opm:opmGraph/opm:artifacts/*|' + \
-                                       '/opm:opmGraph/opm:processes/*'):
+        for node in self.ctxt.xpathEval('/opmGraph/agents/*|' + \
+                                       '/opmGraph/artifacts/*|' + \
+                                       '/opmGraph/processes/*'):
             nid = node.prop('id')
             adj[nid] = set()
 
@@ -105,7 +105,7 @@ class OPMGraph:
             labels[nid] = label
 
         # Get edges.
-        for edge in self.ctxt.xpathEval('/opm:opmGraph/opm:causalDependencies/*'):
+        for edge in self.ctxt.xpathEval('/opmGraph/dependencies/*'):
             child = edge.children
             cause = None
             effect = None
@@ -140,11 +140,11 @@ class OPMGraph:
         new_wasDerivedFrom creates an artifact-to-artifact causal dependency
         from a1id to a2id.
         """
-        if self.causalDependencies is None:
-            self.causalDependencies = self.root.newChild(
-                self.ns, "causalDependencies", None)
+        if self.dependencies is None:
+            self.dependencies = self.root.newChild(
+                self.ns, "dependencies", None)
 
-        wasDerivedFrom = self.causalDependencies.newChild(
+        wasDerivedFrom = self.dependencies.newChild(
             self.ns, "wasDerivedFrom", None)
 
         wasDerivedFrom.newChild(
