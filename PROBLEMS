@@ -1,0 +1,10 @@
+Problems I found in the current OPM format:
+1. All the tags are "opm:stuff", but they should just be "stuff"
+   Similarly, the tag xmlns:opm should just be xmlns
+2. "model/v1.1.a" should be "model/opmx#"
+3. "causalDependencies" should just be "dependencies"
+
+Fixing these should get you a DOT file, but the DOT file will be broken, because
+4. Edit comments containing "quotation marks" will break the DOT format,
+   because "quotation marks" have special meaning in DOT.
+   So, they need to escaped: all " " in edit comments must be replaced with \" \"
