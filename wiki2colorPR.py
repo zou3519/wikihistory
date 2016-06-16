@@ -36,21 +36,21 @@ def snap2colorPR(graphName, numNodes):
 
         if nodePR > scale/0.2:
             color = "blue4"
-        elif nodePR > scale/0.3:
-            color = "navy"
         elif nodePR > scale/0.4:
-            color = "royalblue4"
-        elif nodePR > scale/0.5:
-            color = "steelblue"
+            color = "navy"
         elif nodePR > scale/0.6:
-            color = "skyblue"
-        elif nodePR > scale/0.7:
-            color = "turquoise"
+            color = "royalblue4"
         elif nodePR > scale/0.8:
-            color = "darkseagreen1"
-        elif nodePR > scale/0.9:
-            color = "lemonchiffon"
+            color = "steelblue"
         elif nodePR > scale:
+            color = "skyblue"
+        elif nodePR > scale/1.2:
+            color = "turquoise"
+        elif nodePR > scale/1.4:
+            color = "darkseagreen1"
+        elif nodePR > scale/1.6:
+            color = "lemonchiffon"
+        elif nodePR > scale/2:
             color = "beige"
         else:
             color = "white"
