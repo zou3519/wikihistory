@@ -61,7 +61,7 @@ def colorPR(edgeList, dot, graphName):
 	
 
 	for line in oldGraph:
-		colorGraph.write(line)
+		colorGraph.write(line + "\n")
 
 	oldGraph.close()
 	colorGraph.close()
