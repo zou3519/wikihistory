@@ -54,7 +54,7 @@ class PatchSet:
             if line[0] == ' ':
                 # If equal, terminate any current patch.
                 if ptype is not None:
-                    pid = psid + str(i)
+                    pid = str(i) + "-" + psid
                     i+=1
                     ps.append_patch(Patch(ptype, start, index, pid))
                     if ptype == PatchType.DELETE:
@@ -64,7 +64,7 @@ class PatchSet:
             elif line[0] == '+':
                 # If addition, terminate any current DELETE patch.
                 if ptype == PatchType.DELETE:
-                    pid = psid + str(i)
+                    pid = str(i) + "-" + psid
                     i+=1
                     ps.append_patch(Patch(ptype, start, index, pid))
                     index = start
@@ -77,7 +77,7 @@ class PatchSet:
             elif line[0] == '-':
                 # If deletion, terminate any current ADD patch.
                 if ptype == PatchType.ADD:
-                    pid = psid + str(i)
+                    pid = str(i) + "-" + psid
                     i+=1
                     ps.append_patch(Patch(ptype, start, index, pid))
                     ptype = None
@@ -90,7 +90,7 @@ class PatchSet:
 
         # Terminate and add any remaining patch.
         if ptype is not None:
-            pid = psid + str(i)
+            pid = str(i) + "-" + psid
             ps.append_patch(Patch(ptype, start, index, pid))
 
         return ps
@@ -182,7 +182,7 @@ def doStuff(title):
     model = PatchModel()
     prev = []
 
-    graphFile = open("test" + ".txt", "w")
+    graphFile = open(title.replace(" ", "_") + "_Edits" + ".txt", "w")
     graphFile.write("# Directed graph: " + title + ".txt\n")
     graphFile.write("# Save as tab-separated list of edges\n")
     graphFile.write("# FromNodeId   ToNodeId\n")
@@ -200,7 +200,6 @@ def doStuff(title):
             for d_psid in depends:
                 graphFile.write( p.pid + "  " + d_psid + "\n")
             #print depends
-        print model.model
           
             
         prev = content
