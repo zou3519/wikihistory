@@ -52,7 +52,7 @@ def parse_args():
 		parser.error('incorrect number of arguments')
 
 	wiki2snap.wiki2snap(args[0])
-	getHeights(args[0].replace(" ", "") + ".txt")
+	getHeights(args[0].replace(" ", "_") + ".txt")
 
 
 if __name__ == '__main__':
