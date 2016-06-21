@@ -170,41 +170,4 @@ class PatchModel:
         depends.discard(None)
         depends.discard(p.pid)
         return depends
-
-def doStuff(title):
-    """
-    """
-    witer = WikiIter(WIKI, title, 0)
-
-    model = PatchModel()
-    prev = []
-
-    graphFile = open(title.replace(" ", "_") + "_Edits" + ".txt", "w")
-    graphFile.write("# Directed graph: " + title + ".txt\n")
-    graphFile.write("# Save as tab-separated list of edges\n")
-    graphFile.write("# FromNodeId   ToNodeId\n")
-    
-    rev = witer.next()
-    pid=0
-    while rev is not None:    
-        # psdiff against the previous revision.
-        (revid, comment, content) = rev
-        content = content.split()
-        ps = PatchSet.psdiff(pid, prev, content)
-        pid+=len(ps.patches)
-        #print ps.psid, [[patch.ptype, patch.start, patch.end] for patch in ps.patches]
-        for p in ps.patches:
-            depends = model.apply_patch(p)
-            for d_pid in depends:
-                graphFile.write( str(p.pid) + "  " + str(d_pid) + "\n")
-            #print depends  
-            
-        prev = content
-        rev = witer.next()
-    print model.model
-    graphFile.close()
-    
-
-
-
-doStuff("Mesostigma")
+        

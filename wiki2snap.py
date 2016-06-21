@@ -3,7 +3,7 @@ import optparse
 import os
 import sys
 
-from patch import PatchSet, PatchModel
+from newPatch import PatchSet, PatchModel
 from progressbar import ProgressBar
 from wikiiter import WikiIter
 
@@ -31,7 +31,7 @@ def wiki2snap(title, maximum=None, rvcontinue=0, warm=False):
         graphFile.write("# FromNodeId   ToNodeId\n")
     
     rev = witer.next()
-    node = 0   
+    pid = 0   
     while rev is not None and (maximum is None or node < maximum):
         progress.next()
         
@@ -39,16 +39,17 @@ def wiki2snap(title, maximum=None, rvcontinue=0, warm=False):
             # psdiff against the previous revision.
             (revid, comment, content) = rev
             content = content.split()
-            ps = PatchSet.psdiff(revid, prev, content)
+            ps = PatchSet.psdiff(pid, prev, content)
 
             # Apply to the PatchModel and write dependencies to graph.
-            depends = model.apply_patchset(ps) #list of out-edges from rev
-            for d_psid in depends:
-                graphFile.write( revid + "  " + d_psid + "\n")
+            pid+=len(ps.patches)
+            for p in ps.patches:
+                depends = model.apply_patch(p) #list of out-edges from rev
+                for d_pid in depends:
+                    graphFile.write( str(p.pid) + "  " + str(d_pid) + "\n")
             
             prev = content
 
-        node += 1
         rev = witer.next()
 
     sys.stdout.write(' done.\n')
