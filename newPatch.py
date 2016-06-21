@@ -36,14 +36,14 @@ class PatchSet:
     Each Patch *implicitly* depends on preceding Patches.
     These are critical assumptions, so get them right!
     """
-    def __init__(self, psid):
-    	self.psid=psid
+    def __init__(self):
+    	
         self.patches = []
 
     @classmethod
-    def psdiff(cls, psid, old, new):
+    def psdiff(cls, pid, old, new):
         ptype = None
-        ps = cls(psid)
+        ps = cls()
         start = None
 
         # For line in diff...
@@ -54,9 +54,8 @@ class PatchSet:
             if line[0] == ' ':
                 # If equal, terminate any current patch.
                 if ptype is not None:
-                    pid = str(i) + "-" + psid
-                    i+=1
                     ps.append_patch(Patch(ptype, start, index, pid))
+                    pid+=1
                     if ptype == PatchType.DELETE:
                         index = start
                     ptype = None
@@ -64,9 +63,8 @@ class PatchSet:
             elif line[0] == '+':
                 # If addition, terminate any current DELETE patch.
                 if ptype == PatchType.DELETE:
-                    pid = str(i) + "-" + psid
-                    i+=1
                     ps.append_patch(Patch(ptype, start, index, pid))
+                    pid+=1
                     index = start
                     ptype = None
                 # Begin a new ADD patch, or extend an existing one.
@@ -77,9 +75,8 @@ class PatchSet:
             elif line[0] == '-':
                 # If deletion, terminate any current ADD patch.
                 if ptype == PatchType.ADD:
-                    pid = str(i) + "-" + psid
-                    i+=1
                     ps.append_patch(Patch(ptype, start, index, pid))
+                    pid+=1
                     ptype = None
                 # Begin a new DELETE patch, or extend an existing one.
                 if ptype is None:
@@ -90,8 +87,8 @@ class PatchSet:
 
         # Terminate and add any remaining patch.
         if ptype is not None:
-            pid = str(i) + "-" + psid
             ps.append_patch(Patch(ptype, start, index, pid))
+            pid+=1
 
         return ps
 
@@ -188,17 +185,18 @@ def doStuff(title):
     graphFile.write("# FromNodeId   ToNodeId\n")
     
     rev = witer.next()
-  
+    pid=0
     while rev is not None:    
         # psdiff against the previous revision.
         (revid, comment, content) = rev
         content = content.split()
-        ps = PatchSet.psdiff(revid, prev, content)
+        ps = PatchSet.psdiff(pid, prev, content)
+        pid+=len(ps.patches)
         #print ps.psid, [[patch.ptype, patch.start, patch.end] for patch in ps.patches]
         for p in ps.patches:
             depends = model.apply_patch(p)
-            for d_psid in depends:
-                graphFile.write( p.pid + "  " + d_psid + "\n")
+            for d_pid in depends:
+                graphFile.write( str(p.pid) + "  " + str(d_pid) + "\n")
             #print depends  
             
         prev = content
