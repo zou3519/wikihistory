@@ -199,12 +199,11 @@ def doStuff(title):
             depends = model.apply_patch(p)
             for d_psid in depends:
                 graphFile.write( p.pid + "  " + d_psid + "\n")
-            #print depends
-          
+            #print depends  
             
         prev = content
         rev = witer.next()
-
+    print model.model
     graphFile.close()
     
 

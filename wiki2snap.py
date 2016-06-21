@@ -25,7 +25,7 @@ def wiki2snap(title, maximum=None, rvcontinue=0, warm=False):
         model = PatchModel()
         prev = []
     
-        graphFile = open(title + ".txt", "w")
+        graphFile = open(title.replace(" ", "_") + ".txt", "w")
         graphFile.write("# Directed graph: " + title + ".txt\n")
         graphFile.write("# Save as tab-separated list of edges\n")
         graphFile.write("# FromNodeId   ToNodeId\n")
