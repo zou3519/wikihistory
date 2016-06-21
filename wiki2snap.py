@@ -29,7 +29,7 @@ def wiki2snap(title, maximum=None, rvcontinue=0, warm=False):
         graphFile.write("# Directed graph: " + title + ".txt\n")
         graphFile.write("# Save as tab-separated list of edges\n")
         graphFile.write("# FromNodeId   ToNodeId\n")
-
+    
     rev = witer.next()
     node = 0   
     while rev is not None and (maximum is None or node < maximum):
