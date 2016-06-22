@@ -7,6 +7,12 @@ import wiki2snap
 
 def colorRevisions(title, model, content, heightDict):
     """
+        Creates a html file containing the most recent version of content, the content
+        of the Wikipedia page, title, colored based on the PatchModel, model, and the height
+        of each of the nodes, stored in heightDict.
+
+        Darker colors mean more revisions.
+
     """
     colorFile = open(title+".html", "w")
 
@@ -46,6 +52,7 @@ def colorRevisions(title, model, content, heightDict):
 
 def getColor(edits):
     """
+        Finds the color class based on the number of edits.
     """
     color = "white"
     if edits > 10:
@@ -65,7 +72,7 @@ def getColor(edits):
 
 
 def parse_args():
-    """parse_args parses sys.argv for prettyColors."""
+    """parse_args parses sys.argv for colorRevisions."""
     # Help Menu
     parser = optparse.OptionParser(usage='%prog [options] title')
     
