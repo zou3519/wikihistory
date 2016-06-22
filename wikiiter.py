@@ -28,9 +28,9 @@ class WikiIter:
         if os.path.isfile(cachefile):
             doc = libxml2.parseFile(cachefile)
         else:
-            rvcond = self.rvcontinue == '0' # Check if current revision is the first revision
-            doc =   (libxml2.parseDoc(urllib2.urlopen(self.api + '&rvstartid=' + self.rvcontinue).read()) if rvcond # If it is the first edit, use rvstartid
-                    else libxml2.parseDoc(urllib2.urlopen(self.api + '&rvcontinue=' + self.rvcontinue).read())) # Otherwise use rvcontinue
+            rvcond = self.rvcontinue == 0 # Check if current revision is the first revision
+            doc =   (libxml2.parseDoc(urllib2.urlopen(self.api + '&rvstartid=' + str(self.rvcontinue)).read()) if rvcond # If it is the first edit, use rvstartid
+                    else libxml2.parseDoc(urllib2.urlopen(self.api + '&rvcontinue=' + str(self.rvcontinue)).read())) # Otherwise use rvcontinue
             
             cachefile = open(cachefile, 'w')
             doc.saveTo(cachefile, encoding='UTF-8', format=1)

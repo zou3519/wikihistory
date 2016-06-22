@@ -14,6 +14,9 @@ def colorRevisions(title, model, content, heightDict):
         Darker colors mean more revisions.
 
     """
+    totalEdits = sum(heightDict.values())
+    numberNodes = len(heightDict)
+
     colorFile = open(title+".html", "w")
 
     # Write style sheet
@@ -43,27 +46,32 @@ def colorRevisions(title, model, content, heightDict):
         colorClass = "white"
         if owner!=None:
             edits = heightDict[owner]
-            colorClass = getColor(edits)
+            colorClass = getColor(edits, totalEdits, numberNodes)
 
         colorFile.write("<span class="+ colorClass+ ">"+line+"</span>\n")
 
     colorFile.write("</p>\n</body>\n</html>")
     colorFile.close()
 
-def getColor(edits):
+    
+
+def getColor(edits, totalEdits, numberNodes):
     """
         Finds the color class based on the number of edits.
     """
+    percent = numberNodes*float(edits)/float(totalEdits)
+    print percent
+
     color = "white"
-    if edits > 10:
+    if percent > 2.5:
         color = "darkblue"
-    elif edits > 8:
+    elif percent > 2:
         color="blue"
-    elif edits > 6:
+    elif percent > 1.5:
         color = "royalblue"
-    elif edits>4:
+    elif percent>1.25:
         color="cyan"
-    elif edits>2:
+    elif percent>1:
         color="aquamarine"
     return color
 
