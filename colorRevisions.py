@@ -14,19 +14,23 @@ def colorRevisions(title, model, content, heightDict):
         Darker colors mean more revisions.
 
     """
-    totalEdits = sum(heightDict.values())
-    numberNodes = len(heightDict)
+    numPatches = len(model)
+    totalEdits = 0
+    for i in model:
+        rev = i[1]
+        if rev != None:
+            totalEdits+=heightDict[rev]
 
     colorFile = open(title+".html", "w")
 
     # Write style sheet
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style/>\n")
-    colorFile.write(".white {\n\tbackground-color: white;\n}\n")
-    colorFile.write(".aquamarine {\n\tbackground-color: aquamarine;\n}\n")
-    colorFile.write(".cyan {\n\tbackground-color: cyan;\n}\n")
-    colorFile.write(".royalblue {\n\tbackground-color: royalblue;\n}\n")
+    colorFile.write(".white {\n\tbackground-color: white;\n color: black;\n}\n")
+    colorFile.write(".aquamarine {\n\tbackground-color: aquamarine;\ncolor: black;\n}\n")
+    colorFile.write(".cyan {\n\tbackground-color: cyan;\ncolor: black;\n}\n")
+    colorFile.write(".royalblue {\n\tbackground-color: royalblue;\ncolor: black;\n}\n")
     colorFile.write(".blue {\n\tbackground-color: blue;\ncolor: white;\n}\n")
-    colorFile.write(".darkblue {\n\tbackground-color: darkblue;\ncolor: white}\n")
+    colorFile.write(".darkblue {\n\tbackground-color: darkblue;\ncolor: white;}\n")
     colorFile.write("</style>\n</head>\n")
 
     # Write content
@@ -46,7 +50,7 @@ def colorRevisions(title, model, content, heightDict):
         colorClass = "white"
         if owner!=None:
             edits = heightDict[owner]
-            colorClass = getColor(edits, totalEdits, numberNodes)
+            colorClass = getColor(edits, totalEdits, numPatches)
 
         colorFile.write("<span class="+ colorClass+ ">"+line+"</span>\n")
 
@@ -55,12 +59,11 @@ def colorRevisions(title, model, content, heightDict):
 
     
 
-def getColor(edits, totalEdits, numberNodes):
+def getColor(edits, totalEdits, numPatches):
     """
         Finds the color class based on the number of edits.
     """
-    percent = numberNodes*float(edits)/float(totalEdits)
-    print percent
+    percent = numPatches*float(edits)/float(totalEdits)
 
     color = "white"
     if percent > 2.5:
