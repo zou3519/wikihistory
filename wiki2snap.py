@@ -55,6 +55,7 @@ def wiki2snap(title, maximum=None, rvcontinue=0, warm=False):
     sys.stdout.write(' done.\n')
     sys.stdout.flush()
     graphFile.close()
+    return model.model, content
 
 
 

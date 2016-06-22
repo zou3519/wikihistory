@@ -42,6 +42,7 @@ def getHeights(edgeList):
 	for node in degreeDict: # Write the node and its height into the file
 		outFile.write(str(node) + "\t" + str(degreeDict[node]) + "\n")
 	outFile.close()
+	return degreeDict
 
 
 def parse_args():
