@@ -21,7 +21,7 @@ def wiki2snap(title, remove=True):
     prevComment=""
     
     # Set up snap file
-    graphFile = open(title.replace(" ", "_") + ".txt", "w")
+    graphFile = open("test_" + title.replace(" ", "_") + ".txt", "w")
     graphFile.write("# Directed graph: " + title + ".txt\n")
     graphFile.write("# Save as tab-separated list of edges\n")
     graphFile.write("# FromNodeId   ToNodeId\n")
@@ -32,9 +32,12 @@ def wiki2snap(title, remove=True):
     cachefile = os.path.join('full_histories', title.replace(" ", "_"))
     
     if not (os.path.isfile(cachefile)):
-        doc= libxml2.parseDoc(urllib2.urlopen(api).read())
+        # doc= libxml2.parseDoc(urllib2.urlopen(api).read())
+        page = urllib2.urlopen(api)
         file = open(cachefile, 'w')
-        doc.saveTo(file, encoding='UTF-8', format=1)
+        for line in page:
+            file.write(line)
+        # doc.saveTo(file, encoding='UTF-8', format=1)
         file.close()
     
     tree=ET.parse(cachefile)
