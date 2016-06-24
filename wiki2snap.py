@@ -19,7 +19,7 @@ def wiki2snap(title, maximum=None, rvcontinue=0, warm=False):
         os.mkdir('data')
 
     witer = WikiIter(WIKI, title, rvcontinue=rvcontinue)
-    progress = ProgressBar('Processing "' + title + '"', maximum=maximum)   
+    # progress = ProgressBar('Processing "' + title + '"', maximum=maximum)   
 
     if not warm:
         model = PatchModel()
@@ -33,11 +33,13 @@ def wiki2snap(title, maximum=None, rvcontinue=0, warm=False):
     rev = witer.next()
     pid = 0   
     while rev is not None and (maximum is None or node < maximum):
-        progress.next()
+        # progress.next()
         
         if not warm:    
             # psdiff against the previous revision.
             (revid, comment, content) = rev
+            # if "BOT" in comment:
+            #     print title
             content = content.split()
             ps = PatchSet.psdiff(pid, prev, content)
 

@@ -73,9 +73,9 @@ def getColor(edits, totalEdits, numPatches):
         color="blue"
     elif percent > 1.5:
         color = "royalblue"
-    elif percent>1.25:
+    elif percent > 1.25:
         color="cyan"
-    elif percent>1:
+    elif percent > 1:
         color="aquamarine"
     return color
 
@@ -96,7 +96,7 @@ def parse_args():
 
     title=args[0]
     (model, content) = bulkwiki2snap.wiki2snap(title)
-    heightDict=nodeHeight.getHeights(title.replace(" ", "_") + ".txt")
+    heightDict=nodeHeight.getHeights("edgelists/" + title.replace(" ", "_") + ".txt")
     colorRevisions(title.replace(" ", "_"), model, content, heightDict)
     
 

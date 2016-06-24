@@ -2,6 +2,7 @@
 import libxml2
 import os
 import urllib2
+import xml.etree.ElementTree as ET
 
 WIKI = 'http://en.wikipedia.org/'
 
@@ -20,25 +21,47 @@ class WikiIter:
             cachefile = open(cachefile, 'w')
             doc.saveTo(cachefile, encoding='UTF-8', format=1)
             cachefile.close()
+        else:
+        	doc = libxml2.parseFile(cachefile)
 
 
+        
+       	tree = ET.parse(cachefile)
+       	root = tree.getroot()
+       	count = 0
+       	index = 0
+        for child in root:
+        	for revision in child.iter('{http://www.mediawiki.org/xml/export-0.10/}revision'):
+        		comment = revision.find('{http://www.mediawiki.org/xml/export-0.10/}comment')
+        		revid = revision.find('{http://www.mediawiki.org/xml/export-0.10/}id')
+        		parentid = revision.find('{http://www.mediawiki.org/xml/export-0.10/}parentid')
+        		if comment != None and type(comment.text) is str:
+	        		if "BOT - rv" in comment.text:
+	        			count += 1
+	        			print revid.text, parentid.text, comment.text
+	        			child.remove(revision)
+        		index += 1
+        print count
 
-    #def next(self):
-       # """next gets the next revision in this WikiIter."""
+        # rev = doc.xpathEval('/mediawiki')
+        # print rev
 
-        # Get content.
-        #rev = doc.xpathEval('/api/query/pages/page/revisions/rev')
-        #assert len(rev) == 1
+    # def next(self):
+    #    """next gets the next revision in this WikiIter."""
 
-        # Get next iter.
-        #qc = doc.xpathEval('/api/continue')
-        #if len(qc) == 1:
-        #    self.rvcontinue = qc[0].prop('rvcontinue')
-        #elif len(qc) == 0:
-        #    self.rvcontinue = None
-        #else:
-        #    assert False
+    #     # Get content.
+    #     rev = doc.xpathEval('/api/query/pages/page/revisions/rev')
+    #     assert len(rev) == 1
 
-        #return (rev[0].prop('revid'), rev[0].prop('comment'), rev[0].content)
+    #     Get next iter.
+    #     qc = doc.xpathEval('/api/continue')
+    #     if len(qc) == 1:
+    #        self.rvcontinue = qc[0].prop('rvcontinue')
+    #     elif len(qc) == 0:
+    #        self.rvcontinue = None
+    #     else:
+    #        assert False
 
-it=WikiIter(WIKI, "Mesostigma")
+    #     return (rev[0].prop('revid'), rev[0].prop('comment'), rev[0].content)
+
+it=WikiIter(WIKI, "Liancourt Rocks")

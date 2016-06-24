@@ -49,4 +49,9 @@ class WikiIter:
         else:
             assert False
 
+        comment = rev[0].prop('comment')
+        # print self.rvcontinue, comment.replace("\n", "")
+        if "BOT " in comment:
+            print rev[0].prop('revid')
+
         return (rev[0].prop('revid'), rev[0].prop('comment'), rev[0].content)

@@ -21,7 +21,7 @@ def wiki2snap(title, remove=True):
     prevComment=""
     
     # Set up snap file
-    graphFile = open("test_" + title.replace(" ", "_") + ".txt", "w")
+    graphFile = open("edgelists/" + title.replace(" ", "_") + ".txt", "w")
     graphFile.write("# Directed graph: " + title + ".txt\n")
     graphFile.write("# Save as tab-separated list of edges\n")
     graphFile.write("# FromNodeId   ToNodeId\n")
@@ -30,6 +30,8 @@ def wiki2snap(title, remove=True):
     api = WIKI+ 'w/index.php?title=Special:Export&pages=' + \
                     title.replace(' ', '+')+'&history&action=submit'
     cachefile = os.path.join('full_histories', title.replace(" ", "_"))
+
+    progress = ProgressBar('Processing "' + title + '"', maximum=maximum)
     
     if not (os.path.isfile(cachefile)):
         # doc= libxml2.parseDoc(urllib2.urlopen(api).read())
@@ -50,9 +52,11 @@ def wiki2snap(title, remove=True):
         for rev in page.iter(NAMESPACE+'revision'):
             parent = rev.find(NAMESPACE+'parentid')
             comment = rev.find(NAMESPACE+'comment')
+            revid = rev.find(NAMESPACE+'id')
         
             if parent != None and comment != None and "BOT - rv" in comment.text:
                 remList.append(parent.text)
+                remList.append(revid.text)
     
 
     
@@ -60,6 +64,7 @@ def wiki2snap(title, remove=True):
     
     
     for rev in page.iter(NAMESPACE+'revision'):
+        progress.next()
         # psdiff against the previous revision.
         rvid = rev.find(NAMESPACE+'id').text
         if (not remove) or (rvid not in remList):

@@ -2,7 +2,7 @@
 
 import optparse
 import snap
-import wiki2snap
+import bulkwiki2snap
 
 
 def inNodeIteration(node, dictionary, G):
@@ -56,8 +56,8 @@ def parse_args():
 	if len(args) != 1:
 		parser.error('incorrect number of arguments')
 
-	wiki2snap.wiki2snap(args[0]) # Create an edge list file to run getHeights on
-	getHeights(args[0].replace(" ", "_") + ".txt")
+	bulkwiki2snap.wiki2snap(args[0]) # Create an edge list file to run getHeights on
+	getHeights("edgelists/" + args[0].replace(" ", "_") + ".txt")
 
 
 if __name__ == '__main__':
