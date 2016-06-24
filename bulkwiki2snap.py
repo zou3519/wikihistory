@@ -59,7 +59,6 @@ def wiki2snap(title, remove=True):
     for rev in page.iter(NAMESPACE+'revision'):
         # psdiff against the previous revision.
         rvid = rev.find(NAMESPACE+'id').text
-        print rvid
         if (not remove) or (rvid not in remList):
             comment = rev.find(NAMESPACE+'comment')
             if comment==None:
@@ -84,7 +83,6 @@ def wiki2snap(title, remove=True):
             
             prev = content
         else:
-            print rvid
             remList.remove(rvid)
 
 
