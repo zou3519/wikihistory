@@ -11,14 +11,14 @@ from newPatch import PatchSet, PatchModel
 WIKI = 'http://en.wikipedia.org/'
 NAMESPACE = '{http://www.mediawiki.org/xml/export-0.10/}'
 
-
-def wiki2snap(title):
+def wiki2snap(title, remove=True):
     """wiki2snap converts a WikiIter-able page history to an edge-list."""
     if not os.path.isdir('data'):
         os.mkdir('data')
 
     model = PatchModel()
     prev = []
+    prevComment=""
     
     # Set up snap file
     graphFile = open(title.replace(" ", "_") + ".txt", "w")
@@ -40,33 +40,52 @@ def wiki2snap(title):
     tree=ET.parse(cachefile)
     root=tree.getroot()
     page=tree.find(NAMESPACE+'page')
+
+    remList = []
+
+    if remove:
+        for rev in page.iter(NAMESPACE+'revision'):
+            parent = rev.find(NAMESPACE+'parentid')
+            comment = rev.find(NAMESPACE+'comment')
+        
+            if parent != None and comment != None and "BOT - rv" in comment.text:
+                remList.append(parent.text)
+    
+
     
     pid=0
-    for rev in page.iter(NAMESPACE+'revision'):#'{http://www.mediawiki.org/xml/export-0.10/}revision'):
-        # psdiff against the previous revision.
-        
-        comment = rev.find(NAMESPACE+'comment')
-        if comment==None:
-            comment=""
-        else:
-            comment=comment.text.encode("utf-8")
-
-        content = rev.find(NAMESPACE+'text').text
-        if content==None:
-            content=[]
-        else:
-            content=content.encode("utf-8").split()
     
-        ps = PatchSet.psdiff(pid, prev, content)
+    
+    for rev in page.iter(NAMESPACE+'revision'):
+        # psdiff against the previous revision.
+        rvid = rev.find(NAMESPACE+'id').text
+        print rvid
+        if (not remove) or (rvid not in remList):
+            comment = rev.find(NAMESPACE+'comment')
+            if comment==None:
+                comment=""
+            else:
+                comment=comment.text.encode("utf-8")
 
-        # Apply to the PatchModel and write dependencies to graph.
-        pid+=len(ps.patches)
-        for p in ps.patches:
-            depends = model.apply_patch(p) #list of out-edges from rev
-            for d_pid in depends:
-                graphFile.write( str(p.pid) + "  " + str(d_pid) + "\n")
+            content = rev.find(NAMESPACE+'text').text
+            if content==None:
+                content=[]
+            else:
+                content=content.encode("utf-8").split()
+        
+            ps = PatchSet.psdiff(pid, prev, content)
+
+            # Apply to the PatchModel and write dependencies to graph.
+            pid+=len(ps.patches)
+            for p in ps.patches:
+                depends = model.apply_patch(p) #list of out-edges from rev
+                for d_pid in depends:
+                    graphFile.write( str(p.pid) + "  " + str(d_pid) + "\n")
             
-        prev = content
+            prev = content
+        else:
+            print rvid
+            remList.remove(rvid)
 
 
     sys.stdout.write(' done.\n')
@@ -74,7 +93,6 @@ def wiki2snap(title):
     graphFile.close()
     
     return model.model, content
-    
 
 
 
@@ -83,6 +101,9 @@ def parse_args():
     """parse_args parses sys.argv for wiki2snap."""
     # Help Menu
     parser = optparse.OptionParser(usage='%prog [options] title')
+    parser.add_option('-r', '--remove',
+                      action='store_false', dest='remove', default=True,
+                      help='remove mass deletions')
 
     (opts, args) = parser.parse_args()
 
@@ -90,7 +111,7 @@ def parse_args():
     if len(args) != 1:
         parser.error('incorrect number of arguments')
 
-    wiki2snap(args[0])
+    wiki2snap(args[0], remove=opts.remove)
 
 
 if __name__ == '__main__':
