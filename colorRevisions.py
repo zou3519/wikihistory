@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import nodeHeight
 import optparse
-import wiki2snap
+import bulkwiki2snap
 
 
 
@@ -52,6 +52,7 @@ def colorRevisions(title, model, content, heightDict):
             edits = heightDict[owner]
             colorClass = getColor(edits, totalEdits, numPatches)
 
+
         colorFile.write("<span class="+ colorClass+ ">"+line+"</span>\n")
 
     colorFile.write("</p>\n</body>\n</html>")
@@ -94,7 +95,7 @@ def parse_args():
         parser.error('incorrect number of arguments')
 
     title=args[0]
-    (model, content) = wiki2snap.wiki2snap(title)
+    (model, content) = bulkwiki2snap.wiki2snap(title)
     heightDict=nodeHeight.getHeights(title.replace(" ", "_") + ".txt")
     colorRevisions(title.replace(" ", "_"), model, content, heightDict)
     
