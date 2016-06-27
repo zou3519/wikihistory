@@ -7,6 +7,7 @@ import urllib2
 import xml.etree.ElementTree as ET
 
 from newPatch import PatchSet, PatchModel
+from progressbar import ProgressBar
 
 WIKI = 'http://en.wikipedia.org/'
 NAMESPACE = '{http://www.mediawiki.org/xml/export-0.10/}'
@@ -31,7 +32,7 @@ def wiki2snap(title, remove=True):
                     title.replace(' ', '+')+'&history&action=submit'
     cachefile = os.path.join('full_histories', title.replace(" ", "_"))
 
-    progress = ProgressBar('Processing "' + title + '"', maximum=maximum)
+    progress = ProgressBar('Processing "' + title + '"', maximum=None)
     
     if not (os.path.isfile(cachefile)):
         # doc= libxml2.parseDoc(urllib2.urlopen(api).read())
