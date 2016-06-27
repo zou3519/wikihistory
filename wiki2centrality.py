@@ -11,7 +11,8 @@ def centrality(edgeList):
     file = open(edgeList, "r")
     graph = nx.read_edgelist(file, comments="#", create_using=nx.DiGraph(), nodetype=int)
     file.close()
-    return nx.closeness_centrality(graph)
+    #return nx.closeness_centrality(graph)
+    return nx.betweenness_centrality(graph)
 	
 def colorPercentile(model, centrality):
     """
@@ -27,21 +28,23 @@ def colorPercentile(model, centrality):
 
     # Assign colors to nodes
     length=len(a)
-    scale=int(float(length)/NUMCOLORS)
+    # scale=length/NUMCOLORS
+
+    steve = int(length*0.1)
 
     colors = {}
 
-    for i in range(scale):
+    for i in range(steve):
         colors[a[i][1]]="darkblue"
-    for i in range(scale, 2*scale):
+    for i in range(steve, steve*2):
         colors[a[i][1]]="blue"
-    for i in range(2*scale, 3*scale):
+    for i in range(steve*2, steve*3):
         colors[a[i][1]]="royalblue"
-    for i in range(3*scale, 4*scale):
+    for i in range(steve*3, steve*4):
         colors[a[i][1]]="cyan"
-    for i in range(4*scale, 5*scale):
+    for i in range(steve*4, steve*5):
         colors[a[i][1]]="aquamarine"
-    for i in range(5*scale,length):
+    for i in range(steve*5,length):
         colors[a[i][1]]="white"
     print "colorPercentile done"
     return colors
@@ -49,7 +52,8 @@ def colorPercentile(model, centrality):
 def writeColors(title, model, content, colors):
     print "writeColors start"
     # Write style sheet
-    colorFile = open("centrality_"+title.replace(" ", "_")+".html", "w")
+    #colorFile = open("centrality_2_"+title.replace(" ", "_")+".html", "w")
+    colorFile = open("betweenness_"+title.replace(" ", "_")+".html", "w")
 
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style/>\n")
     colorFile.write(".white {\n\tbackground-color: white;\n color: black;\n}\n")

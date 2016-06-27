@@ -43,7 +43,8 @@ def wiki2snap(title, remove=True):
         # doc.saveTo(file, encoding='UTF-8', format=1)
         file.close()
     
-    tree=ET.parse(cachefile)
+    parser = ET.XMLParser(encoding="utf-8")
+    tree=ET.parse(cachefile, parser = parser)
     root=tree.getroot()
     page=tree.find(NAMESPACE+'page')
 
