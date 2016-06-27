@@ -32,7 +32,7 @@ def wiki2snap(title, remove=True):
                     title.replace(' ', '+')+'&history&action=submit'
     cachefile = os.path.join('full_histories', title.replace(" ", "_"))
 
-    progress = ProgressBar('Processing "' + title + '"', maximum=None)
+    # progress = ProgressBar('Processing "' + title + '"', maximum=None)
     
     if not (os.path.isfile(cachefile)):
         # doc= libxml2.parseDoc(urllib2.urlopen(api).read())
@@ -66,7 +66,7 @@ def wiki2snap(title, remove=True):
     
     
     for rev in page.iter(NAMESPACE+'revision'):
-        progress.next()
+        # progress.next()
         # psdiff against the previous revision.
         rvid = rev.find(NAMESPACE+'id').text
         if (not remove) or (rvid not in remList):

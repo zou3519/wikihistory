@@ -12,7 +12,7 @@ def centrality(edgeList):
     graph = nx.read_edgelist(file, comments="#", create_using=nx.DiGraph(), nodetype=int)
     file.close()
     #return nx.closeness_centrality(graph)
-    return nx.betweenness_centrality(graph)
+    return nx.out_degree_centrality(graph)
 	
 def colorPercentile(model, centrality):
     """
@@ -53,7 +53,7 @@ def writeColors(title, model, content, colors):
     print "writeColors start"
     # Write style sheet
     #colorFile = open("centrality_2_"+title.replace(" ", "_")+".html", "w")
-    colorFile = open("betweenness_"+title.replace(" ", "_")+".html", "w")
+    colorFile = open("out_degree_"+title.replace(" ", "_")+".html", "w")
 
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style/>\n")
     colorFile.write(".white {\n\tbackground-color: white;\n color: black;\n}\n")
