@@ -5,45 +5,50 @@ import optparse
 
 
 def centrality(edgeList):
-	"""
-	"""
-	file = open(edgeList, "r")
-	graph = nx.read_edgelist(file, comments="#", create_using=nx.DiGraph(), nodetype=int)
-	file.close()
-	return nx.closeness_centrality(graph)
+    """
+    """
+    print "centrality start"
+    file = open(edgeList, "r")
+    graph = nx.read_edgelist(file, comments="#", create_using=nx.DiGraph(), nodetype=int)
+    file.close()
+    return nx.closeness_centrality(graph)
 	
 def colorPercentile(model, centrality):
-	"""
-	"""
-	NUMCOLORS=6
+    """
+    """
+    print "colorPercentile start"
+    NUMCOLORS=6
 
-	# Get ids of nodes in model and sort by decreasing centrality
-	a=[(centrality[x[1]], x[1]) for x in model if x[1] != None]
-	s=set(a)
-	a=sorted(list(s), reverse=True)
+    # Get ids of nodes in model and sort by decreasing centrality
+    a=[(centrality[x[1]], x[1]) for x in model if x[1] != None]
+    s=set(a)
+    a=sorted(list(s), reverse=True)
+    print "sorting done"
 
-	# Assign colors to nodes
-	length=len(a)
-	scale=int(float(length)/NUMCOLORS)
+    # Assign colors to nodes
+    length=len(a)
+    scale=int(float(length)/NUMCOLORS)
 
-	colors = {}
+    colors = {}
 
-	for i in range(scale):
-		colors[a[i][1]]="darkblue"
-	for i in range(scale, 2*scale):
-		colors[a[i][1]]="blue"
-	for i in range(2*scale, 3*scale):
-		colors[a[i][1]]="royalblue"
-	for i in range(3*scale, 4*scale):
-		colors[a[i][1]]="cyan"
-	for i in range(4*scale, 5*scale):
-		colors[a[i][1]]="aquamarine"
-	for i in range(5*scale,length):
-		colors[a[i][1]]="white"
-	return colors
+    for i in range(scale):
+        colors[a[i][1]]="darkblue"
+    for i in range(scale, 2*scale):
+        colors[a[i][1]]="blue"
+    for i in range(2*scale, 3*scale):
+        colors[a[i][1]]="royalblue"
+    for i in range(3*scale, 4*scale):
+        colors[a[i][1]]="cyan"
+    for i in range(4*scale, 5*scale):
+        colors[a[i][1]]="aquamarine"
+    for i in range(5*scale,length):
+        colors[a[i][1]]="white"
+    print "colorPercentile done"
+    return colors
 	
 def writeColors(title, model, content, colors):
-	# Write style sheet
+    print "writeColors start"
+    # Write style sheet
     colorFile = open("centrality_"+title.replace(" ", "_")+".html", "w")
 
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style/>\n")
@@ -76,6 +81,7 @@ def writeColors(title, model, content, colors):
 
     colorFile.write("</p>\n</body>\n</html>")
     colorFile.close()
+    print "writeColors done"
 
 def wiki2centrality(title, remove):
 	"""
