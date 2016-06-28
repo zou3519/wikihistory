@@ -6,10 +6,10 @@ from newPatch import PatchSet, PatchModel
 
 WIKI = 'http://en.wikipedia.org/'
 
-#def wiki2snap(title, remove=True):
-#    """wiki2snap converts a WikiIter-able page history to an edge-list."""
-#    if not os.path.isdir('edgelists'):
-#        os.mkdir('edgelists')
+def wiki2snap(title, remove=True):
+    """wiki2snap converts a Wikipedia page history to an edge-list."""
+    downloadWiki(title)
+    return history2snap(title, remove)
 
 
 def downloadWiki(title):
@@ -39,6 +39,8 @@ def downloadWiki(title):
 
 def getRemlist(fileName):
     """
+        Gets a list of ids of revisions that are bot reverts
+        or that were reverted by bots
     """
     print "Removing bot rv."
     file = open(fileName, "r")
@@ -71,6 +73,7 @@ def getRemlist(fileName):
 
 def history2snap(title, remove=True):
     """
+        Converts a Wikipedia page, title, to an edge-list
     """
     if remove:
         remList=getRemlist("full_histories/"+ title.replace(" ", "_"))
@@ -90,31 +93,50 @@ def history2snap(title, remove=True):
     prev = []
     pid=0
     
-    username=False
-    useid=True
-    compare = False
-    writeText=False
+    getid = True # can read id from doc
+    useid= False   # have an id ready to use
+    compare = False  # ready to compare content
+    writeText= False  # adding to current content
     
     historyFile=open("full_histories/"+ title.replace(" ", "_"), "r")
+
+    line = historyFile.readline().strip()
+    while line[:4] != "<id>":
+        line=historyFile.readline().strip()
 
     for line in historyFile:
         line=line.strip()
 
-        # Gets content
+
+        # Gets the next valid revision id
+        if getid:
+            if line[:4] == "<id>":
+                rvid = line[4:-5]
+                if remove and rvid in  remList: 
+                    remList.remove(rvid)
+                else:
+                    useid=True
+                    getid=False
+
+        # Have an id ready to use, looking for start of content
         if useid:
             if line[:5] == "<text":
-                writeText=True
                 content= ""
                 line = line.split('">')
-                line = line[1]
-            if writeText:
-                if line[:-7] == "</text>":
-                    content+= line[:-7]
-                    writeText=False
-                    compare = True
-                else:
-                    content+=line
+                line = line[1]+"\n"
+                useid=False
+                writeText=True
         
+        # Have reached start if content, looking for end
+        if writeText:
+            if line[-7:] == "</text>":
+                content+=line[:-7]
+                writeText=False
+                compare = True
+            else:
+                content+=line+"\n"
+        
+        # Have text ready to compare. 
         # Apply to the PatchModel and write dependencies to graph.
         if compare:
             content=content.split()
@@ -127,28 +149,13 @@ def history2snap(title, remove=True):
                     graphFile.write( str(p.pid) + "\t" + str(d_pid) + "\n")
             
             prev = content
+            compare = False
+            getid = True
 
-        # Sets whether to use content based on id and remList
-        if remove:
-            if not username and line[:4] == "<id>":
-                rvid = line[4:-5]
-                if rvid in remList:
-                    useid=False
-                    remList.remove(rvid)
-                else:
-                    useid=True
-
-            if line[:10] == "<username>":
-                username=True
-            else:
-                username=False
-
-
+        
     historyFile.close()
     graphFile.close()
-    print model.model
+    
     return model.model, content
 
 
-downloadWiki("Mesostigma")
-history2snap("Mesostigma", True)

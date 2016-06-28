@@ -66,8 +66,7 @@ def wiki2snap(title, remove=True):
     
     
     for rev in page.iter(NAMESPACE+'revision'):
-        # progress.next()
-        # psdiff against the previous revision.
+        
         rvid = rev.find(NAMESPACE+'id').text
         if (not remove) or (rvid not in remList):
             comment = rev.find(NAMESPACE+'comment')
@@ -80,7 +79,9 @@ def wiki2snap(title, remove=True):
             if content==None:
                 content=[]
             else:
-                content=content.encode("utf-8").split()
+                content=content.encode("utf-8")
+                
+                content=content.split()
         
             ps = PatchSet.psdiff(pid, prev, content)
 
@@ -92,6 +93,7 @@ def wiki2snap(title, remove=True):
                     graphFile.write( str(p.pid) + "  " + str(d_pid) + "\n")
             
             prev = content
+            
         else:
             remList.remove(rvid)
 
