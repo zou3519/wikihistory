@@ -123,6 +123,8 @@ def history2snap(title, remove=True):
             if line[:5] == "<text":
                 content= ""
                 line = line.split('">')
+                if len(line) == 1:
+                    line += [""]
                 line = line[1]+"\n"
                 useid=False
                 writeText=True
@@ -135,6 +137,7 @@ def history2snap(title, remove=True):
                 compare = True
             else:
                 content+=line+"\n"
+
         
         # Have text ready to compare. 
         # Apply to the PatchModel and write dependencies to graph.
@@ -156,6 +159,7 @@ def history2snap(title, remove=True):
     historyFile.close()
     graphFile.close()
     
+    print model.model
     return model.model, content
 
 
