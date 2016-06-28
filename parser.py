@@ -159,3 +159,22 @@ def history2snap(title, remove=True):
     return model.model, content
 
 
+def parse_args():
+    """parse_args parses sys.argv for wiki2snap."""
+    # Help Menu
+    parser = optparse.OptionParser(usage='%prog [options] title')
+    parser.add_option('-r', '--remove',
+                      action='store_false', dest='remove', default=True,
+                      help='remove mass deletions')
+
+    (opts, args) = parser.parse_args()
+
+    # Parser Errors
+    if len(args) != 1:
+        parser.error('incorrect number of arguments')
+
+    wiki2snap(args[0], remove=opts.remove)
+
+
+if __name__ == '__main__':
+    parse_args()
