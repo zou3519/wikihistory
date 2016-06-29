@@ -38,21 +38,26 @@ def colorPercentile(model, centrality):
     # Assign colors to nodes
     length=len(a)
 
-    percentLen = int(length*0.1)
+    percentLen = int(length*0.01)
 
     colors = {}
 
+    # Top 1%
     for i in range(percentLen):
         colors[a[i][1]]="darkred"
-    for i in range(percentLen, percentLen*2):
+    # 1-5
+    for i in range(percentLen, percentLen*5):
         colors[a[i][1]]="red"
-    for i in range(percentLen*2, percentLen*3):
+    # 5-10
+    for i in range(percentLen*5, percentLen*10):
         colors[a[i][1]]="mediumred"
-    for i in range(percentLen*3, percentLen*4):
+    # 10-15
+    for i in range(percentLen*10, percentLen*15):
         colors[a[i][1]]="lightred"
-    for i in range(percentLen*4, percentLen*5):
+    # 15-25
+    for i in range(percentLen*15, percentLen*25):
         colors[a[i][1]]="pink"
-    for i in range(percentLen*5,length):
+    for i in range(percentLen*25,length):
         colors[a[i][1]]="white"
     print "colorPercentile done"
     return colors
@@ -138,4 +143,3 @@ def parse_args():
 
 if __name__ == '__main__':
     parse_args()
-    
