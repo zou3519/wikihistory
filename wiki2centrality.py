@@ -22,7 +22,7 @@ def centrality(edgeList, ctype):
         centrality = nx.closeness_centrality(graph)
     
     return centrality
-	
+    
 def colorPercentile(model, centrality):
     """
     """
@@ -37,7 +37,6 @@ def colorPercentile(model, centrality):
 
     # Assign colors to nodes
     length=len(a)
-    # scale=length/NUMCOLORS
 
     percentLen = int(length*0.1)
 
@@ -57,7 +56,7 @@ def colorPercentile(model, centrality):
         colors[a[i][1]]="white"
     print "colorPercentile done"
     return colors
-	
+    
 def writeColors(title, model, content, colors, ctype):
     print "writeColors start"
     # Write style sheet
@@ -68,44 +67,50 @@ def writeColors(title, model, content, colors, ctype):
     colorFile = open("centrality/"+(ctype+"_"+title).replace(" ", "_")+".html", "w")
 
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style/>\n")
-    colorFile.write(".white {\n\tbackground-color: white;\n color: black;\n}\n")
-    colorFile.write(".pink {\n\tbackground-color: #ffcccc;\ncolor: black;\n}\n")
-    colorFile.write(".lightred {\n\tbackground-color: #ff9999;\ncolor: black;\n}\n")
-    colorFile.write(".mediumred {\n\tbackground-color: #ff4d4d;\ncolor: black;\n}\n")
-    colorFile.write(".red {\n\tbackground-color: #cc0000;\ncolor: black;\n}\n")
-    colorFile.write(".darkred {\n\tbackground-color: #990000;\ncolor: blacj=k;}\n")
+    colorFile.write(".white {\n\tbackground-color: white;\n\tcolor: black;\n}\n")
+    colorFile.write(".pink {\n\tbackground-color: #ffcccc;\n\tcolor: black;\n}\n")
+    colorFile.write(".lightred {\n\tbackground-color: #ff9999;\n\tcolor: black;\n}\n")
+    colorFile.write(".mediumred {\n\tbackground-color: #ff4d4d;\n\tcolor: black;\n}\n")
+    colorFile.write(".red {\n\tbackground-color: #cc0000;\n\tcolor: black;\n}\n")
+    colorFile.write(".darkred {\n\tbackground-color: #990000;\n\tcolor: blacj=k;}\n")
     colorFile.write("</style>\n</head>\n")
 
     # Write content
-    colorFile.write("<body>\n<p>\n")
-    length = len(model)
-    for i in range(length-1):
-        # Get text
-        start = model[i][0]
-        end = model[i+1][0]
-        line=""
-        for current in content[start:end]:
-            line+=current + " "
+    colorFile.write("<body>\n")
+    
+    content=content.splitlines()
+    content = [line.split() for line in content]
 
-        # Get color
-        revid=model[i][1]
-        if revid==None:
-        	color="white"
-        else:
-        	color = colors[model[i][1]]
-    	colorFile.write("<span class="+ color+ ">"+line+"</span>\n")
+    pos=0
+    dif = model[pos+1][0] - model[pos][0]
+    color="white"
+    
+    for line in content:
+        current = "<p><span class="+color+">"
+        for i in range(len(line)):
+            if dif == 0:
+                while dif==0:
+                    pos+=1
+                    color=colors[model[pos][1]]
+                    dif = model[pos+1][0] - model[pos][0]
+                current+="</span><span class="+color+">"
 
-    colorFile.write("</p>\n</body>\n</html>")
+            current+=line[i]+ " "
+            dif-=1
+        current+="</span></p>\n"
+        colorFile.write(current)
+
+    colorFile.write("</body>\n</html>")
     colorFile.close()
     print "writeColors done"
 
 def wiki2centrality(title, remove, ctype):
-	"""
-	"""
-	model,content=parser.wiki2snap(title, remove)
-	centralityDict = centrality("edgelists/" + title.replace(" ", "_") + ".txt", ctype)
-	colors = colorPercentile(model, centralityDict)
-	writeColors(title, model, content, colors, ctype)
+    """
+    """
+    model,content=parser.wiki2snap(title, remove)
+    centralityDict = centrality("edgelists/" + title.replace(" ", "_") + ".txt", ctype)
+    colors = colorPercentile(model, centralityDict)
+    writeColors(title, model, content, colors, ctype)
 
 
 
@@ -133,4 +138,4 @@ def parse_args():
 
 if __name__ == '__main__':
     parse_args()
-
+    

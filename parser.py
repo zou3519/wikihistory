@@ -142,8 +142,8 @@ def history2snap(title, remove=True):
         # Have text ready to compare. 
         # Apply to the PatchModel and write dependencies to graph.
         if compare:
-            content=content.split()
-            ps = PatchSet.psdiff(pid, prev, content)
+            contentList=content.split()
+            ps = PatchSet.psdiff(pid, prev, contentList)
 
             pid+=len(ps.patches)
             for p in ps.patches:
@@ -151,7 +151,7 @@ def history2snap(title, remove=True):
                 for d_pid in depends:
                     graphFile.write( str(p.pid) + "\t" + str(d_pid) + "\n")
             
-            prev = content
+            prev = contentList
             compare = False
             getid = True
 
