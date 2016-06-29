@@ -159,7 +159,6 @@ def history2snap(title, remove=True):
     historyFile.close()
     graphFile.close()
     
-    print model.model
     return model.model, content
 
 

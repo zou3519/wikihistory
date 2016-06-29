@@ -1,18 +1,27 @@
 #!/usr/bin/python
 import networkx as nx
-import bulkwiki2snap as bw
+import parser
 import optparse
+import os
 
 
-def centrality(edgeList):
+def centrality(edgeList, ctype):
     """
     """
     print "centrality start"
+
     file = open(edgeList, "r")
     graph = nx.read_edgelist(file, comments="#", create_using=nx.DiGraph(), nodetype=int)
     file.close()
-    #return nx.closeness_centrality(graph)
-    return nx.out_degree_centrality(graph)
+
+    if ctype == "out_degree":
+        centrality = nx.out_degree_centrality(graph)
+    elif ctype == "betweenness":
+        centrality=nx.betweenness_centrality(graph)
+    else:
+        centrality = nx.closeness_centrality(graph)
+    
+    return centrality
 	
 def colorPercentile(model, centrality):
     """
@@ -30,38 +39,41 @@ def colorPercentile(model, centrality):
     length=len(a)
     # scale=length/NUMCOLORS
 
-    steve = int(length*0.1)
+    percentLen = int(length*0.1)
 
     colors = {}
 
-    for i in range(steve):
-        colors[a[i][1]]="darkblue"
-    for i in range(steve, steve*2):
-        colors[a[i][1]]="blue"
-    for i in range(steve*2, steve*3):
-        colors[a[i][1]]="royalblue"
-    for i in range(steve*3, steve*4):
-        colors[a[i][1]]="cyan"
-    for i in range(steve*4, steve*5):
-        colors[a[i][1]]="aquamarine"
-    for i in range(steve*5,length):
+    for i in range(percentLen):
+        colors[a[i][1]]="darkred"
+    for i in range(percentLen, percentLen*2):
+        colors[a[i][1]]="red"
+    for i in range(percentLen*2, percentLen*3):
+        colors[a[i][1]]="mediumred"
+    for i in range(percentLen*3, percentLen*4):
+        colors[a[i][1]]="lightred"
+    for i in range(percentLen*4, percentLen*5):
+        colors[a[i][1]]="pink"
+    for i in range(percentLen*5,length):
         colors[a[i][1]]="white"
     print "colorPercentile done"
     return colors
 	
-def writeColors(title, model, content, colors):
+def writeColors(title, model, content, colors, ctype):
     print "writeColors start"
     # Write style sheet
-    #colorFile = open("centrality_2_"+title.replace(" ", "_")+".html", "w")
-    colorFile = open("out_degree_"+title.replace(" ", "_")+".html", "w")
+
+    if not os.path.isdir('centrality'):
+        os.mkdir('centrality')
+    
+    colorFile = open("centrality/"+(ctype+"_"+title).replace(" ", "_")+".html", "w")
 
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style/>\n")
     colorFile.write(".white {\n\tbackground-color: white;\n color: black;\n}\n")
-    colorFile.write(".aquamarine {\n\tbackground-color: aquamarine;\ncolor: black;\n}\n")
-    colorFile.write(".cyan {\n\tbackground-color: cyan;\ncolor: black;\n}\n")
-    colorFile.write(".royalblue {\n\tbackground-color: royalblue;\ncolor: black;\n}\n")
-    colorFile.write(".blue {\n\tbackground-color: blue;\ncolor: white;\n}\n")
-    colorFile.write(".darkblue {\n\tbackground-color: darkblue;\ncolor: white;}\n")
+    colorFile.write(".pink {\n\tbackground-color: #ffcccc;\ncolor: black;\n}\n")
+    colorFile.write(".lightred {\n\tbackground-color: #ff9999;\ncolor: black;\n}\n")
+    colorFile.write(".mediumred {\n\tbackground-color: #ff4d4d;\ncolor: black;\n}\n")
+    colorFile.write(".red {\n\tbackground-color: #cc0000;\ncolor: black;\n}\n")
+    colorFile.write(".darkred {\n\tbackground-color: #990000;\ncolor: blacj=k;}\n")
     colorFile.write("</style>\n</head>\n")
 
     # Write content
@@ -87,13 +99,13 @@ def writeColors(title, model, content, colors):
     colorFile.close()
     print "writeColors done"
 
-def wiki2centrality(title, remove):
+def wiki2centrality(title, remove, ctype):
 	"""
 	"""
-	model,content=bw.wiki2snap(title, remove)
-	centralityDict = centrality("edgelists/" + title.replace(" ", "_") + ".txt")
+	model,content=parser.wiki2snap(title, remove)
+	centralityDict = centrality("edgelists/" + title.replace(" ", "_") + ".txt", ctype)
 	colors = colorPercentile(model, centralityDict)
-	writeColors(title, model, content, colors)
+	writeColors(title, model, content, colors, ctype)
 
 
 
@@ -105,6 +117,10 @@ def parse_args():
     parser.add_option('-r', '--remove',
                       action='store_false', dest='remove', default=True,
                       help='remove mass deletions')
+    parser.add_option('-c', '--centrality',
+                      type='str', dest='ctype', default='closeness',
+                      help='type of centrality: closeness, out_degree, betweenness',
+                      metavar='CTYPE')
 
     (opts, args) = parser.parse_args()
 
@@ -112,7 +128,7 @@ def parse_args():
     if len(args) != 1:
         parser.error('incorrect number of arguments')
 
-    wiki2centrality(args[0], remove=opts.remove)
+    wiki2centrality(args[0], remove=opts.remove, ctype=opts.ctype)
 
 
 if __name__ == '__main__':
