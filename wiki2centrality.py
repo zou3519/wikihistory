@@ -13,11 +13,12 @@ def centrality(edgeList, ctype):
     file = open(edgeList, "r")
     graph = nx.read_edgelist(file, comments="#", create_using=nx.DiGraph(), nodetype=int)
     file.close()
+    N = nx.number_of_nodes(graph)
 
     if ctype == "out_degree":
         centrality = nx.out_degree_centrality(graph)
     elif ctype == "betweenness":
-        centrality=nx.betweenness_centrality(graph)
+        centrality=nx.betweenness_centrality(graph, k=int(N/100))
     else:
         centrality = nx.closeness_centrality(graph)
     
@@ -74,7 +75,7 @@ def writeColors(title, model, contentFile, colors, ctype):
     if not os.path.isdir('centrality'):
         os.mkdir('centrality')
     
-    colorFile = open("centrality/"+(ctype+"_"+title).replace(" ", "_")+".html", "w")
+    colorFile = open("centrality/"+("test_"+ctype+"_"+title).replace(" ", "_")+".html", "w")
 
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style/>\n")
     colorFile.write(".white {\n\tbackground-color: white;\n\tcolor: black;\n}\n")

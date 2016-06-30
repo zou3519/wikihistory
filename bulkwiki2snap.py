@@ -102,7 +102,7 @@ def wiki2snap(title, remove=True):
     sys.stdout.flush()
     graphFile.close()
     
-    print model.model
+    # print model.model
     return model.model, content
 
 

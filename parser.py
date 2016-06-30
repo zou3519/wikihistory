@@ -163,7 +163,12 @@ def history2snap(title, remove=True):
         
         historyFile.close()
         graphFile.close()
-    
+        
+        if not os.path.isdir('models'):
+            os.mkdir('models')
+        if not os.path.isdir('content'):
+            os.mkdir('content')
+
         modelFile = open("models/"+ cachefile, "w")
         line = ""
         for patch in model.model:
