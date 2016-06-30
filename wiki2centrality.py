@@ -23,13 +23,18 @@ def centrality(edgeList, ctype):
     
     return centrality
     
-def colorPercentile(model, centrality):
+def colorPercentile(modelFile, centrality):
     """
     """
     print "colorPercentile start"
-    NUMCOLORS=6
-
     # Get ids of nodes in model and sort by decreasing centrality
+    modelFile = open(modelFile, "r")
+    model=[(0,None)]
+    for line in modelFile:
+        line=line.split()
+        if line[1]!='None':
+            model+=[(int(line[0]), int(line[1]))]
+        
     a=[(centrality[x[1]], x[1]) for x in model if x[1] != None]
     s=set(a)
     a=sorted(list(s), reverse=True)
@@ -60,9 +65,9 @@ def colorPercentile(model, centrality):
     for i in range(percentLen*25,length):
         colors[a[i][1]]="white"
     print "colorPercentile done"
-    return colors
+    return colors, model
     
-def writeColors(title, model, content, colors, ctype):
+def writeColors(title, model, contentFile, colors, ctype):
     print "writeColors start"
     # Write style sheet
 
@@ -82,9 +87,12 @@ def writeColors(title, model, content, colors, ctype):
 
     # Write content
     colorFile.write("<body>\n")
-    
-    content=content.splitlines()
-    content = [line.split() for line in content]
+
+    contentFile=open(contentFile,"r")
+    content=[]
+    for line in contentFile:
+        content+=[line.split()]
+    contentFile.close()
 
     pos=0
     dif = model[pos+1][0] - model[pos][0]
@@ -112,10 +120,17 @@ def writeColors(title, model, content, colors, ctype):
 def wiki2centrality(title, remove, ctype):
     """
     """
-    model,content=parser.wiki2snap(title, remove)
-    centralityDict = centrality("edgelists/" + title.replace(" ", "_") + ".txt", ctype)
-    colors = colorPercentile(model, centralityDict)
-    writeColors(title, model, content, colors, ctype)
+    parser.wiki2snap(title, remove)
+
+    if remove:
+        file = title.replace(" ", "_") + "_rem.txt"
+    else:
+        file = title.replace(" ", "_") + ".txt"
+    
+    centralityDict = centrality("edgelists/" + file, ctype)
+    colors, model = colorPercentile("models/"+file, centralityDict)
+    writeColors(title, model, "content/"+file, colors, ctype)
+   
 
 
 
