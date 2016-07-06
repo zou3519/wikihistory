@@ -6,6 +6,7 @@
 import optparse
 import os
 import urllib2
+import networkx as nx
 
 WIKI = 'http://en.wikipedia.org/'
 
@@ -236,12 +237,7 @@ def readModel(title, remove):
     modelFile = open(file, "r")
     model=[]
 
-    # Handle None id
-    line=modelFile.readline()
-    line=line.split()
-    model.append((int(line[0]), None))
-
-    # Read rest of model
+    # Read model
     for line in modelFile:
         line=line.split()
         model.append((int(line[0]), int(line[1])))
