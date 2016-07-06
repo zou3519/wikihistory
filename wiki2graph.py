@@ -247,3 +247,64 @@ def readModel(title, remove):
         model.append((int(line[0]), int(line[1])))
     modelFile.close()
     return model
+
+
+
+
+def wiki2graph(title, remove, new):
+    """
+        Returns a networkx graph, the content of the latest revision, and the 
+            PatchModel for Wikipedia page, title.
+        Setting remove to True removes bot reverses and vandalism from the data.
+        Setting new to True applies the model whether or not it is cached
+    """
+    if remove:
+        file = title.replace(" ", "_")+"_rem.txt"
+    else:
+        file = title.replace(" ", "_")+".txt"
+
+    # Check if files exist to avoid reapplying model
+    if not new and \
+        os.path.isdir('edgelists') and os.path.isfile("edgelists/"+file) and \
+        os.path.isdir('content') and os.path.isfile("content/"+file) and \
+        os.path.isdir('edgelists') and os.path.isfile("models/"+file):
+
+        graph = readGraph(title, remove)
+        content = readContent(title, remove)
+        model = readModel(title, remove)
+
+    # Apply model. Download full history if necessary
+    else:
+        file = title.replace(" ", "_")
+        if not os.path.isdir('full_histories') or not os.path.isfile("full_histories/"+file):
+            downloadHistory(title)
+        (graph, content, model) = applyModel(title, remove)
+
+    return graph, content, model
+
+
+
+
+
+def parse_args():
+    """parse_args parses sys.argv for wiki2graph."""
+    # Help Menu
+    parser = optparse.OptionParser(usage='%prog [options] title')
+    parser.add_option('-r', '--remove',
+                      action='store_false', dest='remove', default=False,
+                      help='remove mass deletions')
+    parser.add_option('-n', '--new',
+                      action='store_false', dest='remove', default=False,
+                      help='reapply model even if cached')
+
+    (opts, args) = parser.parse_args()
+
+    # Parser Errors
+    if len(args) != 1:
+        parser.error('incorrect number of arguments')
+
+    wiki2graph(args[0], remove=opts.remove)
+
+
+if __name__ == '__main__':
+    parse_args()
