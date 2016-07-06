@@ -8,6 +8,8 @@ import os
 import urllib2
 import networkx as nx
 
+from newPatch import PatchSet, PatchModel
+
 WIKI = 'http://en.wikipedia.org/'
 
 def downloadHistory(title):

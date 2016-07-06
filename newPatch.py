@@ -1,60 +1,68 @@
-#!/usr/bin/python
 import bisect
 import difflib
-
-from wikiiter import WikiIter
-WIKI = 'http://en.wikipedia.org/'
-# Removed for loop from apply_patchset
-# Changed apply patch_set to apply patch to focus on individual edits instead of
-#	revisions. Gave patch an id for the same reason.
-# Last digit of node id is the edit number. Rest of the digits are the revid.
-#	Which is a terrible naming system if the edit number is >9. Need to fix that
+import networkx as nx
 
 class PatchType:
-    """PatchType enumerates the types of Patches: add and delete."""
+    """
+        Add if text was inserted. Delete if text was removed
+    """
     ADD = 0
     DELETE = 1
 
 
+
+
 class Patch:
-    """A Patch is a contiguous block of added or deleted lines."""
-    def __init__(self, ptype, start, end, pid):
+    """
+        A Patch is a contiguous block of added or deleted words
+            representing a single edit.
+    """
+    def __init__(self, pid, ptype, start, end):
         assert ptype == PatchType.ADD or ptype == PatchType.DELETE
         assert start >= 0
         assert end > start
 
+        self.pid = pid
         self.ptype = ptype
         self.start = start
         self.end = end
         self.length = end - start
-        self.pid=pid
+
+
 
 
 class PatchSet:
     """
-    A PatchSet is a set of sequentially applied Patches with one *unique* ID.
-    Each Patch *implicitly* depends on preceding Patches.
-    These are critical assumptions, so get them right!
+        A PatchSet is a list of Patches (edits) that belong to the
+        same revision.
+
+        Each Patch implicitly depend on preceding Patches.
     """
+
     def __init__(self):
-    	
         self.patches = []
 
     @classmethod
-    def psdiff(cls, pid, old, new):
+    def psdiff(cls, startid, old, new):
+        """
+            Compares 2 vesions of text at a word level to identify 
+                the individual edits (insertions and deletions).
+        """
         ptype = None
         ps = cls()
         start = None
+        pid = startid
 
-        # For line in diff...
+        # Obtain a list of differences between the texts
         diff = difflib.ndiff(old, new)
+        
+        # Split the differences into Patches
         index = 0
-        i=0
         for line in diff:
             if line[0] == ' ':
                 # If equal, terminate any current patch.
                 if ptype is not None:
-                    ps.append_patch(Patch(ptype, start, index, pid))
+                    ps.append_patch(Patch(pid, ptype, start, index))
                     pid+=1
                     if ptype == PatchType.DELETE:
                         index = start
@@ -63,7 +71,7 @@ class PatchSet:
             elif line[0] == '+':
                 # If addition, terminate any current DELETE patch.
                 if ptype == PatchType.DELETE:
-                    ps.append_patch(Patch(ptype, start, index, pid))
+                    ps.append_patch(Patch(pid, ptype, start, index))
                     pid+=1
                     index = start
                     ptype = None
@@ -75,7 +83,7 @@ class PatchSet:
             elif line[0] == '-':
                 # If deletion, terminate any current ADD patch.
                 if ptype == PatchType.ADD:
-                    ps.append_patch(Patch(ptype, start, index, pid))
+                    ps.append_patch(Patch(pid, ptype, start, index))
                     pid+=1
                     ptype = None
                 # Begin a new DELETE patch, or extend an existing one.
@@ -87,8 +95,7 @@ class PatchSet:
 
         # Terminate and add any remaining patch.
         if ptype is not None:
-            ps.append_patch(Patch(ptype, start, index, pid))
-            pid+=1
+            ps.append_patch(Patch(pid, ptype, start, index))
 
         return ps
 
@@ -96,29 +103,46 @@ class PatchSet:
         self.patches.append(p)
 
 
+
+
 class PatchModel:
-    """A PatchModel models applying Patches to a text object."""
-    model = [(0, None)] # A sorted list of end-ordered spans and Patch IDs.
+    """
+        A PatchModel model gives ownership of indices of the current text to
+            the Patch that last modified that section of text.
+    """
+    model=[]   # A sorted list of end indices and Patch IDs.
+    graph = nx.DiGraph()
+
 
     def apply_patch(self, p):
-        depends = set()
-
-        if p.ptype == PatchType.ADD:
-            # Find indices and dependencies.
+        """
+            Adds Patch, p, to the model and graph
+        """
+        self.graph.add_node(p.pid)
+        print "hi"
+        if not []:
+            self.model.append((p.end, p.pid))
+        
+        elif p.ptype == PatchType.ADD:
+            # Find indices that share a range with p
             sin = bisect.bisect_left(
-                [span for (span, pid) in self.model], p.start)
+                [end for (end, pid) in self.model], p.start)
             ein = bisect.bisect_right(
-                [span for (span, pid) in self.model], p.start)
+                [end for (end, pid) in self.model], p.start)
 
-            for (span, pid) in self.model[sin:(ein + 1)]:
-                depends.add(pid)
+            # Add dependencies
+            # (every patch that ends where p starts and the proceeding patch)
+            for (end, pid) in self.model[sin:(ein + 1)]:
+                print "42"
+                self.model.graph.add_edge(p.pid, pid)
 
             # Remove intermediates if present.
+            # Leave the first preceeding Patch
             if sin != ein:
                 del self.model[(sin + 1):ein]
             # Else, split the surrounding span.
             else:
-                (span, pid) = self.model[sin]
+                (end, pid) = self.model[sin]
                 self.model.insert(sin, (p.start, pid))
             ein = sin + 1
 
@@ -126,28 +150,31 @@ class PatchModel:
             self.model.insert(ein, (p.end, p.pid))
 
             # Update proceeding spans.
-            self.model[(ein + 1):len(self.model)] = \
-                [(span + p.length, pid) for (span, pid) \
-                in self.model[(ein + 1):len(self.model)]]
+            self.model[(ein + 1):] = \
+                [(end + p.length, pid) for (end, pid) \
+                in self.model[(ein + 1):]]
+
 
         elif p.ptype == PatchType.DELETE:
-            # Find indices and dependencies.
+            # Find indices of Patches who fall in the deleted range.
             sin = bisect.bisect_right(
-                [span for (span, pid) in self.model], p.start)
+                [end for (end, pid) in self.model], p.start)
             ein = bisect.bisect_left(
-                [span for (span, pid) in self.model], p.end)
+                [end for (end, pid) in self.model], p.end)
 
-            for (span, pid) in self.model[sin:(ein + 1)]:
-                depends.add(pid)
+            # Add dependencies to graph
+            for (end, pid) in self.model[sin:(ein + 1)]:
+                self.model.graph.add_edge(p.pid, pid)
 
-            # Adjust indices.
+            # Adjust indices to include Patches that end where p starts
+            #   or end where p ends.
             if sin != bisect.bisect_left(
-                [span for (span, pid) in self.model], p.start): sin -= 1
+               [end for (end, pid) in self.model], p.start): sin -= 1
             if ein != bisect.bisect_right(
-                [span for (span, pid) in self.model], p.end): ein += 1
+                [end for (end, pid) in self.model], p.end): ein += 1
 
             # Shrink the preceding span and remove intermediates if present
-            (span, pid) = self.model[sin]
+            (end, pid) = self.model[sin]
             if sin != ein:
                 self.model[sin] = (p.start, pid)
                 del self.model[(sin + 1):ein]
@@ -160,14 +187,9 @@ class PatchModel:
             self.model.insert(ein, (p.start, p.pid))
 
             # Update the proceeding spans.
-            self.model[(ein + 1):len(self.model)] = \
-                [(span - p.length, pid) for (span, pid) \
-                in self.model[(ein + 1):len(self.model)]]
+            self.model[(ein + 1):] = \
+                [(end - p.length, pid) for (end, pid) \
+                in self.model[(ein + 1):]]
 
         else:
             assert False
-
-        depends.discard(None)
-        depends.discard(p.pid)
-        return depends
-        
