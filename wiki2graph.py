@@ -3,7 +3,7 @@
 # Contains all function that involve the full Wikipedia history
 #    and forming the model/graph
 
-import optparse
+import argparse
 import os
 import urllib2
 import networkx as nx
@@ -44,8 +44,6 @@ def applyModel(title, remove):
             the PatchModel, and the most recent content.
     """
 
-    print "Applying model . . ."
-
     # Make folders for model, graph, and content files
     if not os.path.isdir('edgelists'):
         os.mkdir('edgelists')
@@ -57,6 +55,8 @@ def applyModel(title, remove):
     # Get the list of vertices to remove
     if remove:
         remList = getRemlist('full_histories/'+title.replace(" ", "_"))
+
+    print "Applying model . . ."
 
     model = PatchModel()
     prev = []
@@ -149,13 +149,13 @@ def applyModel(title, remove):
 
 
 
-def getRemlist(title):
+def getRemlist(filename):
     """
         Gets a list of ids of revisions that are bot reverts
         or that were reverted by bots
     """
     print "Removing bot rv."
-    file = open(fileName, "r")
+    file = open(filename, "r")
     
     remList = []
     username=False
@@ -289,21 +289,18 @@ def wiki2graph(title, remove, new):
 def parse_args():
     """parse_args parses sys.argv for wiki2graph."""
     # Help Menu
-    parser = optparse.OptionParser(usage='%prog [options] title')
-    parser.add_option('-r', '--remove',
-                      action='store_false', dest='remove', default=False,
+    parser = argparse.ArgumentParser(usage='%prog [options] title')
+    parser.add_argument('title', nargs=1)
+    parser.add_argument('-r', '--remove',
+                      action='store_true', dest='remove', default=False,
                       help='remove mass deletions')
-    parser.add_option('-n', '--new',
-                      action='store_false', dest='new', default=False,
+    parser.add_argument('-n', '--new',
+                      action='store_true', dest='new', default=False,
                       help='reapply model even if cached')
 
-    (opts, args) = parser.parse_args()
+    n=parser.parse_args()
 
-    # Parser Errors
-    if len(args) != 1:
-        parser.error('incorrect number of arguments')
-
-    wiki2graph(args[0], remove=opts.remove, new=opts.new)
+    wiki2graph(n.title[0], n.remove, n.new)
 
 
 if __name__ == '__main__':
