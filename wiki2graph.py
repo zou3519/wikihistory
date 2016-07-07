@@ -114,7 +114,7 @@ def applyModel(title, remove):
 
             pid+=len(ps.patches)
             for p in ps.patches:
-                apply_patch(p) #list of out-edges from rev
+                model.apply_patch(p) #list of out-edges from rev
             
             prev = contentList
             compare = False
@@ -123,11 +123,13 @@ def applyModel(title, remove):
         
     historyFile.close()
 
-    # Writes graph to file
     if remove:
-        nx.write_edgelist(model.graph, "edgelists/"+title.replace(" ", "_")+'_rem.txt')
+        cachefile = title.replace(" ", "_")+'_rem.txt'
     else:
-        nx.write_edgelist(model.graph, "edgelists/"+title.replace(" ", "_")+'.txt')
+        cachefile = title.replace(" ", "_")+'.txt'
+
+    # Writes graph to file
+    nx.write_edgelist(model.graph, "edgelists/"+cachefile)
         
     # Write model to file
     modelFile = open("models/"+ cachefile, "w")
@@ -292,7 +294,7 @@ def parse_args():
                       action='store_false', dest='remove', default=False,
                       help='remove mass deletions')
     parser.add_option('-n', '--new',
-                      action='store_false', dest='remove', default=False,
+                      action='store_false', dest='new', default=False,
                       help='reapply model even if cached')
 
     (opts, args) = parser.parse_args()
@@ -301,7 +303,7 @@ def parse_args():
     if len(args) != 1:
         parser.error('incorrect number of arguments')
 
-    wiki2graph(args[0], remove=opts.remove)
+    wiki2graph(args[0], remove=opts.remove, new=opts.new)
 
 
 if __name__ == '__main__':
