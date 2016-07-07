@@ -119,8 +119,7 @@ class PatchModel:
             Adds Patch, p, to the model and graph
         """
         self.graph.add_node(p.pid)
-        print "hi"
-        if not []:
+        if not self.model:
             self.model.append((p.end, p.pid))
         
         elif p.ptype == PatchType.ADD:
@@ -133,8 +132,7 @@ class PatchModel:
             # Add dependencies
             # (every patch that ends where p starts and the proceeding patch)
             for (end, pid) in self.model[sin:(ein + 1)]:
-                print "42"
-                self.model.graph.add_edge(p.pid, pid)
+                self.graph.add_edge(p.pid, pid)
 
             # Remove intermediates if present.
             # Leave the first preceeding Patch
@@ -164,7 +162,7 @@ class PatchModel:
 
             # Add dependencies to graph
             for (end, pid) in self.model[sin:(ein + 1)]:
-                self.model.graph.add_edge(p.pid, pid)
+                self.graph.add_edge(p.pid, pid)
 
             # Adjust indices to include Patches that end where p starts
             #   or end where p ends.
