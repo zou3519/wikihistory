@@ -115,6 +115,7 @@ class PatchModel:
     """
     model=[]   # A sorted list of end indices and Patch IDs.
     graph = nx.DiGraph()
+    sizes = {}
 
 
     def apply_patch(self, p):
@@ -122,6 +123,7 @@ class PatchModel:
             Adds Patch, p, to the model and graph
         """
         self.graph.add_node(p.pid)
+        self.sizes[p.pid]=p.length
         if not self.model:
             self.model.append((p.end, p.pid))
         
@@ -135,7 +137,7 @@ class PatchModel:
             # Add dependencies
             # (every patch that ends where p starts and the proceeding patch)
             for (end, pid) in self.model[sin:(ein + 1)]:
-                self.graph.add_edge(p.pid, pid)
+                self.graph.add_edge(p.pid, pid, weight=1)
 
             # Remove intermediates if present.
             # Leave the first preceeding Patch
@@ -165,7 +167,7 @@ class PatchModel:
 
             # Add dependencies to graph
             for (end, pid) in self.model[sin:(ein + 1)]:
-                self.graph.add_edge(p.pid, pid)
+                self.graph.add_edge(p.pid, pid, weight=1)
 
             # Adjust indices to include Patches that end where p starts
             #   or end where p ends.
