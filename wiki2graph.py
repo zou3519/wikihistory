@@ -129,7 +129,7 @@ def applyModel(title, remove):
         cachefile = title.replace(" ", "_")+'.txt'
 
     # Writes graph to file
-    nx.write_edgelist(model.graph, "edgelists/"+cachefile)
+    nx.write_weighted_edgelist(model.graph, "edgelists/"+cachefile, encoding='utf-8')
         
     # Write model to file
     modelFile = open("models/"+ cachefile, "w")
@@ -198,7 +198,7 @@ def readGraph(title, remove):
 
     assert os.path.isfile(file), "Graph file does not exist."
 
-    return nx.read_edgelist(file)
+    return nx.read_weighted_edgelist(file, create_using=nx.DiGraph(), encoding='utf-8')
 
 
 
