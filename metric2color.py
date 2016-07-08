@@ -114,6 +114,31 @@ def metric2color(title, remove, metricName, metricDict):
 
 
 
-(graph, content, model) = w2g.wiki2graph("Liancourt Rocks", True, True)
-heights=metric.heights(graph)
-metric2color("Liancourt Rocks", True, "height", heights)
+def parse_args():
+    """parse_args parses sys.argv for wiki2graph."""
+    # Help Menu
+    parser = argparse.ArgumentParser(usage='%prog [options] title')
+    parser.add_argument('title', nargs=1)
+    parser.add_argument('-r', '--remove',
+                      action='store_true', dest='remove', default=False,
+                      help='remove mass deletions')
+    parser.add_argument('-n', '--new',
+                      action='store_true', dest='new', default=False,
+                      help='reapply model even if cached')
+    parser.add_option('-m', '--metric',
+                      type='str', dest='ctype', default='height',
+                      help='name of metric: height, closeness, out_degree, betweenness',
+                      metavar='CTYPE')
+
+    n=parser.parse_args()
+
+    wiki2graph(n.title[0], n.remove, n.new)
+
+    (graph, content, model) = w2g.wiki2graph(n.title[0], n.remove, n.new)
+    heights=metric.heights(graph)
+    metric2color(n.title[0], n.remove, "height", heights)
+
+
+if __name__ == '__main__':
+    parse_args()
+
