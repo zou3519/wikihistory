@@ -3,6 +3,7 @@ import networkx as nx
 import parser
 import optparse
 import os
+import 
 
 
 def centrality(edgeList, ctype):
@@ -19,6 +20,8 @@ def centrality(edgeList, ctype):
         centrality = nx.out_degree_centrality(graph)
     elif ctype == "betweenness":
         centrality=nx.betweenness_centrality(graph, k=int(N/100))
+    elif ctype == "height":
+        return 1
     else:
         centrality = nx.closeness_centrality(graph)
     
