@@ -10,7 +10,6 @@ def heights(graph):
     for N in graph:
         if graph.in_degree(N) == 0:
             getHeight(graph, N, heightDict)
-    print heightDict
     return heightDict
 
 def getHeight(graph, node, heightDict):

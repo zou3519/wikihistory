@@ -34,7 +34,22 @@ def downloadHistory(title):
         file.write(line)
     file.close()
 
-    
+def filterContent(line):
+    """
+    """
+    cleanLine=""
+    write=True
+    for word in line.split():
+        if write and "&lt;ref&gt;" in word:
+            i=word.index("&lt;ref&gt;")
+            cleanline+=word[:i]+" "
+            write=False
+        if not write and "&lt;/ref&gt;":
+            i=word.index("&lt;ref&gt;")
+            cleanline+=word[:i]+" "
+            write=True
+
+    return cleanLine
 
 
 def applyModel(title, remove):
@@ -111,7 +126,6 @@ def applyModel(title, remove):
         if compare:
             contentList=content.split()
             ps = PatchSet.psdiff(pid, prev, contentList)
-
             pid+=len(ps.patches)
             for p in ps.patches:
                 model.apply_patch(p) #list of out-edges from rev
@@ -129,7 +143,7 @@ def applyModel(title, remove):
         cachefile = title.replace(" ", "_")+'.txt'
 
     # Writes graph to file
-    nx.write_weighted_edgelist(model.graph, "edgelists/"+cachefile, encoding='utf-8')
+    nx.write_weighted_edgelist(model.graph, "edgelists/"+cachefile)
         
     # Write model to file
     modelFile = open("models/"+ cachefile, "w")
@@ -198,7 +212,7 @@ def readGraph(title, remove):
 
     assert os.path.isfile(file), "Graph file does not exist."
 
-    return nx.read_weighted_edgelist(file, create_using=nx.DiGraph(), encoding='utf-8')
+    return nx.read_weighted_edgelist(file, create_using=nx.DiGraph())
 
 
 
