@@ -34,22 +34,7 @@ def downloadHistory(title):
         file.write(line)
     file.close()
 
-def filterContent(line):
-    """
-    """
-    cleanLine=""
-    write=True
-    for word in line.split():
-        if write and "&lt;ref&gt;" in word:
-            i=word.index("&lt;ref&gt;")
-            cleanline+=word[:i]+" "
-            write=False
-        if not write and "&lt;/ref&gt;":
-            i=word.index("&lt;ref&gt;")
-            cleanline+=word[:i]+" "
-            write=True
 
-    return cleanLine
 
 
 def applyModel(title, remove):
