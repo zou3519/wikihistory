@@ -118,11 +118,11 @@ class PatchModel:
     sizes = {}
 
 
-    def apply_patch(self, p):
+    def apply_patch(self, p, timestamp):
         """
             Adds Patch, p, to the model and graph
         """
-        self.graph.add_node(p.pid)
+        self.graph.add_node(p.pid, time = timestamp)
         self.sizes[p.pid]=p.length
         if not self.model:
             self.model.append((p.end, p.pid))

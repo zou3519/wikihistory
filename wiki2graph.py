@@ -45,8 +45,8 @@ def applyModel(title, remove):
     """
 
     # Make folders for model, graph, and content files
-    if not os.path.isdir('edgelists'):
-        os.mkdir('edgelists')
+    if not os.path.isdir('GMLs'):
+        os.mkdir('GMLs')
     if not os.path.isdir('models'):
         os.mkdir('models')
     if not os.path.isdir('content'):
@@ -63,6 +63,7 @@ def applyModel(title, remove):
     pid=0
     
     getid = True # can read id from doc
+    gettime = True
     useid= False   # have an id ready to use
     compare = False  # ready to compare content
     writeText= False  # adding to current content
@@ -85,6 +86,10 @@ def applyModel(title, remove):
                 else:
                     useid=True
                     getid=False
+        if gettime:
+            if line[:11] == "<timestamp>":
+                timestamp = line[11:-12]
+                gettime = False
 
         # Have an id ready to use, looking for start of content
         if useid:
@@ -113,11 +118,12 @@ def applyModel(title, remove):
             ps = PatchSet.psdiff(pid, prev, contentList)
             pid+=len(ps.patches)
             for p in ps.patches:
-                model.apply_patch(p) #list of out-edges from rev
+                model.apply_patch(p, timestamp) #list of out-edges from rev
             
             prev = contentList
             compare = False
             getid = True
+            gettime = True
 
         
     historyFile.close()
@@ -128,7 +134,7 @@ def applyModel(title, remove):
         cachefile = title.replace(" ", "_")+'.txt'
 
     # Writes graph to file
-    nx.write_weighted_edgelist(model.graph, "edgelists/"+cachefile)
+    nx.write_gml(model.graph, "GMLs/"+cachefile)
         
     # Write model to file
     modelFile = open("models/"+ cachefile, "w")
@@ -191,13 +197,13 @@ def readGraph(title, remove):
     """
     print "Reading graph . . ."
     if remove:
-        file = "edgelists/" + title.replace(" ", "_")+'_rem.txt'
+        file = "GMLs" + title.replace(" ", "_")+'_rem.txt'
     else:
-        file = "edgelists/" + title.replace(" ", "_")+'.txt'
+        file = "GMLs" + title.replace(" ", "_")+'.txt'
 
     assert os.path.isfile(file), "Graph file does not exist."
 
-    return nx.read_weighted_edgelist(file, create_using=nx.DiGraph())
+    return nx.read_gml(file)
 
 
 
@@ -264,7 +270,7 @@ def wiki2graph(title, remove, new):
 
     # Check if files exist to avoid reapplying model
     if not new and \
-        os.path.isdir('edgelists') and os.path.isfile("edgelists/"+file) and \
+        os.path.isdir('GMLs') and os.path.isfile("GMLs/"+file) and \
         os.path.isdir('content') and os.path.isfile("content/"+file) and \
         os.path.isdir('edgelists') and os.path.isfile("models/"+file):
 
