@@ -1,5 +1,6 @@
 import bisect
 import difflib
+import timestamp as ts
 import networkx as nx
 
 # Models individual insertions and deletions as Patches, revisions as
