@@ -272,7 +272,7 @@ def wiki2graph(title, remove, new):
     if not new and \
         os.path.isdir('GMLs') and os.path.isfile("GMLs/"+file) and \
         os.path.isdir('content') and os.path.isfile("content/"+file) and \
-        os.path.isdir('edgelists') and os.path.isfile("models/"+file):
+        os.path.isdir('models/') and os.path.isfile("models/"+file):
 
         graph = readGraph(title, remove)
         content = readContent(title, remove)

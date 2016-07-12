@@ -5,6 +5,8 @@ def time_diff(oldTime, newTime):
         Finds the time difference in minutes between 2 strings 
             in Wikipedia timestamp format.
     """
+    MINTIME = 0.01
+
     oldTime=oldTime.split("-")
     oyear= int(oldTime[0])
     omonth=int(oldTime[1])
@@ -31,4 +33,6 @@ def time_diff(oldTime, newTime):
 
     delta=nDate-oDate
     minutes= float(delta.total_seconds())/60
+    if minutes==0:
+        minutes=MINTIME
     return minutes
