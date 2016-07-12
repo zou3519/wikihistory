@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import optparse
 import os
 import wiki2graph as w2g
 import metric
@@ -117,26 +118,35 @@ def metric2color(title, remove, metricName, metricDict):
 def parse_args():
     """parse_args parses sys.argv for wiki2graph."""
     # Help Menu
-    parser = argparse.ArgumentParser(usage='%prog [options] title')
-    parser.add_argument('title', nargs=1)
-    parser.add_argument('-r', '--remove',
+    parser = optparse.OptionParser(usage='%prog [options] title')
+    parser.add_option('-r', '--remove',
                       action='store_true', dest='remove', default=False,
                       help='remove mass deletions')
-    parser.add_argument('-n', '--new',
+    parser.add_option('-n', '--new',
                       action='store_true', dest='new', default=False,
                       help='reapply model even if cached')
     parser.add_option('-m', '--metric',
-                      type='str', dest='ctype', default='height',
+                      type='str', dest='mtype', default='height',
                       help='name of metric: height, closeness, out_degree, betweenness',
-                      metavar='CTYPE')
+                      metavar='MTYPE')
 
-    n=parser.parse_args()
+    (opts, args) = parser.parse_args()
 
-    wiki2graph(n.title[0], n.remove, n.new)
+    # Parser Errors
+    if len(args) != 1:
+        parser.error('incorrect number of arguments')
 
-    (graph, content, model) = w2g.wiki2graph(n.title[0], n.remove, n.new)
-    heights=metric.heights(graph)
-    metric2color(n.title[0], n.remove, "height", heights)
+    (graph, content, model) = w2g.wiki2graph(args[0], remove=opts.remove, new=opts.new)
+    heights = metric.getHeight(graph)
+    metric2color(args[0], remove = opts.remove, metricName = "height", metricDict = heights)
+
+    # n=parser.parse_args()
+
+    # wiki2graph(n.title[0], n.remove, n.new)
+
+    # (graph, content, model) = w2g.wiki2graph(n.title[0], n.remove, n.new)
+    # heights=metric.heights(graph)
+    # metric2color(n.title[0], n.remove, "height", heights)
 
 
 if __name__ == '__main__':

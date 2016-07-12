@@ -197,9 +197,9 @@ def readGraph(title, remove):
     """
     print "Reading graph . . ."
     if remove:
-        file = "GMLs" + title.replace(" ", "_")+'_rem.txt'
+        file = "GMLs/" + title.replace(" ", "_")+'_rem.txt'
     else:
-        file = "GMLs" + title.replace(" ", "_")+'.txt'
+        file = "GMLs/" + title.replace(" ", "_")+'.txt'
 
     assert os.path.isfile(file), "Graph file does not exist."
 
