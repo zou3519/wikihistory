@@ -1,6 +1,5 @@
 import bisect
 import difflib
-import timestamp as ts
 import networkx as nx
 
 # Models individual insertions and deletions as Patches, revisions as
@@ -138,10 +137,7 @@ class PatchModel:
             # Add dependencies
             # (every patch that ends where p starts and the proceeding patch)
             for (end, pid) in self.model[sin:(ein + 1)]:
-                oldtime = self.graph.node[pid]['time']
-                newtime = self.graph.node[p.pid]['time']
-                timediff= ts.time_diff(oldtime, newtime)
-                weight=float(self.sizes[p.pid])/(self.sizes[pid]*timediff)
+                weight=self.sizes[p.pid] + self.sizes[pid]
                 self.graph.add_edge(p.pid, pid, weight=weight)
 
             # Remove intermediates if present.
@@ -172,10 +168,7 @@ class PatchModel:
 
             # Add dependencies to graph
             for (end, pid) in self.model[sin:(ein + 1)]:
-                oldtime = self.graph.node[pid]['time']
-                newtime = self.graph.node[p.pid]['time']
-                timediff= ts.time_diff(oldtime, newtime)
-                weight=float(self.sizes[p.pid])/(self.sizes[pid]*timediff)
+                weight=self.sizes[p.pid]+self.sizes[pid]
                 self.graph.add_edge(p.pid, pid, weight=weight)
 
             # Adjust indices to include Patches that end where p starts
