@@ -63,8 +63,8 @@ def applyModel(title, remove):
     pid=0
     
     getid = True # can read id from doc
-    gettime = True
-    useid= False   # have an id ready to use
+    gettime = False # have id ready to use, can read time from doc 
+    gettext= False   # have an id ready to use
     compare = False  # ready to compare content
     writeText= False  # adding to current content
     
@@ -84,22 +84,23 @@ def applyModel(title, remove):
                 if remove and rvid in  remList: 
                     remList.remove(rvid)
                 else:
-                    useid=True
                     getid=False
+                    gettime=True
         if gettime:
             if line[:11] == "<timestamp>":
                 timestamp = line[11:-12]
                 gettime = False
+                gettext=True
 
         # Have an id ready to use, looking for start of content
-        if useid:
+        if gettext:
             if line[:5] == "<text":
                 content= ""
                 line = line.split('">')
                 if len(line) == 1:
                     line += [""]
                 line = line[1]+"\n"
-                useid=False
+                gettext=False
                 writeText=True
         
         # Have reached start if content, looking for end
@@ -123,7 +124,6 @@ def applyModel(title, remove):
             prev = contentList
             compare = False
             getid = True
-            gettime = True
 
         
     historyFile.close()

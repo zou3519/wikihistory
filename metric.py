@@ -3,7 +3,7 @@
 import networkx as nx
 import wiki2graph
 
-def getHeight2(graph):
+def getHeight(graph):
     """ Returns a dictionary of the vertices and their weighted heights from the first vertex
     """     
     nodeList = nx.topological_sort(graph, reverse = True)
@@ -23,8 +23,3 @@ def getHeight2(graph):
             node = int(node.decode("utf-8"))
         heightDict[node]= height
     return heightDict
-
-graph = wiki2graph.readGraph("Caesar salad", False)
-nodeList = nx.topological_sort(graph, reverse = True)
-one = getHeight2(graph)
-print one[int(nodeList[1000].decode("utf-8"))]
