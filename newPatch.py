@@ -133,10 +133,71 @@ class PatchModel:
                 [end for (end, pid) in self.model], p.start)
 
             # Add dependencies
-            # (every patch that ends where p starts and the proceeding patch)
-            for (end, pid) in self.model[sin:(ein + 1)]:
-                weight=self.graph.node[p.pid]['size'] + self.graph.node[pid]['size']
-                self.graph.add_edge(p.pid, pid, weight=weight)
+
+            # Case 1: Insertion into the middle of one edit
+            if sin==ein:
+                pid = self.model[sin][1]
+                if sin==0:
+                    start=0
+                else:
+                    start=self.model[sin-1][0]
+                length=self.model[sin][0]-start
+                dist = p.length+length
+                self.graph.add_edge(p.pid, pid, weight=dist)
+
+            # Case 2: Insertion between 2 edits or at the end of the document
+            elif (ein-sin)==1:
+                total=0
+                if sin==0:
+                    start=0
+                else:
+                    start=self.model[sin-1][0]
+
+                total=0
+                nstart=start
+                for (end, pid) in self.model[sin:(ein + 1)]:
+                    total+=end-nstart
+                    nstart=end
+                nstart=start
+                for (end, pid) in self.model[sin:(ein + 1)]:
+                    length=end-nstart
+                    nstart=end
+                    prob=float(length)/total
+                    dist=length+p.length
+                    self.graph.add_edge(p.pid, pid, weight=prob*dist)
+
+            # Case 3: Replacement, insertion depends on deletions
+            else:
+
+                # Get total size of dependencies to find weight of dependence
+                # Only include deletes in range
+                start=p.start
+                total=0
+                for (end, pid) in self.model[sin:(ein + 1)]:
+                    if p.end<end:
+                        length=p.end-start
+                    else:
+                        length=end-start
+                        start=end
+                    # Delete patches act like invisible text
+                    if length==0:
+                        total+=self.graph.node[pid]['size']
+    
+                # Add dependencies to graph with weights
+                start=p.start
+                for (end, pid) in self.model[sin:(ein + 1)]:
+                    if p.end<end:
+                        length=p.end-start
+                    else:
+                        length=end-start
+                        start=end
+                    if length==0:
+                        length=self.graph.node[pid]['size']
+                        prob=float(length)/total
+                        dist=p.length+length
+                        self.graph.add_edge(p.pid, pid, weight=prob*dist)
+
+
 
             # Remove intermediates if present.
             # Leave the first preceeding Patch
@@ -164,16 +225,36 @@ class PatchModel:
             ein = bisect.bisect_left(
                 [end for (end, pid) in self.model], p.end)
 
-            # Add dependencies to graph
+            # Get total size of dependencies to find weight of dependence
+            start=p.start
+            total=0
+            for (end, pid) in self.model[sin:(ein + 1)]:
+                if p.end<end:
+                    length=p.end-start
+                else:
+                    length=end-start
+                    start=end
+                # Delete patches act like invisible text
+                if length==0:
+                    total+=self.graph.node[pid]['size']
+                else:
+                    total+=length
+
+            # Add dependencies to graph with weights
             start=p.start
             for (end, pid) in self.model[sin:(ein + 1)]:
                 if p.end<end:
-                    prob=float(p.end-start)/p.length
+                    length=p.end-start
                 else:
-                    prob=float(end-start)/p.length
+                    length=end-start
                     start=end
-                weight=(self.graph.node[p.pid]['size']+self.graph.node[pid]['size']) * prob
-                self.graph.add_edge(p.pid, pid, weight=weight)
+                if length==0:
+                    length=self.graph.node[pid]['size']
+                prob=float(length)/total
+
+                dist=p.length+length
+                self.graph.add_edge(p.pid, pid, weight=prob*dist)
+
 
             # Adjust indices to include Patches that end where p starts
             #   or end where p ends.
