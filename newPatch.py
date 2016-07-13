@@ -143,7 +143,7 @@ class PatchModel:
                     start=self.model[sin-1][0]
                 length=self.model[sin][0]-start
                 dist = p.length+length
-                self.graph.add_edge(p.pid, pid, weight=dist)
+                self.graph.add_edge(p.pid, pid, prob=1.0, dist=dist)
 
             # Case 2: Insertion between 2 edits or at the end of the document
             elif (ein-sin)==1:
@@ -164,7 +164,7 @@ class PatchModel:
                     nstart=end
                     prob=float(length)/total
                     dist=length+p.length
-                    self.graph.add_edge(p.pid, pid, weight=prob*dist)
+                    self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
 
             # Case 3: Replacement, insertion depends on deletions
             else:
@@ -195,7 +195,7 @@ class PatchModel:
                         length=self.graph.node[pid]['size']
                         prob=float(length)/total
                         dist=p.length+length
-                        self.graph.add_edge(p.pid, pid, weight=prob*dist)
+                        self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
 
 
 
@@ -253,7 +253,7 @@ class PatchModel:
                 prob=float(length)/total
 
                 dist=p.length+length
-                self.graph.add_edge(p.pid, pid, weight=prob*dist)
+                self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
 
 
             # Adjust indices to include Patches that end where p starts
