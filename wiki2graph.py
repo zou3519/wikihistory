@@ -6,11 +6,13 @@
 import argparse
 import os
 import urllib2
+import requests
 import networkx as nx
 
 from newPatch import PatchSet, PatchModel
 
-WIKI = 'http://en.wikipedia.org/'
+WIKI = 'https://en.wikipedia.org/'
+LIMIT='1000'
 
 def downloadHistory(title):
     """
@@ -24,7 +26,7 @@ def downloadHistory(title):
         os.mkdir('full_histories')
 
     api = WIKI+ 'w/index.php?title=Special:Export&pages=' + \
-                    title.replace(' ', '+')+'&history&action=submit'
+                    title.replace(' ', '_')+'&history&action=submit'
     cachefile = os.path.join('full_histories', title.replace(" ", "_"))
     
     # Download and save history
@@ -33,6 +35,21 @@ def downloadHistory(title):
     for line in page:
         file.write(line)
     file.close()
+
+def downloadPartial(title, offset):
+    offset=str(offset)
+    api = WIKI+ 'w/index.php?title=Special:Export&pages=' + title.replace(' ', '_') + \
+                '&offset='+offset+'&limit='+LIMIT+'&action=submit'
+    cachefile = 'full_histories/'+ title.replace(" ", "_")+offset+'.xml'
+    
+    file=open(cachefile, "w")
+    # Download and save history
+    r=requests.post(api, data="")
+    for line in r.text:
+        file.write(line)
+    file.close()
+
+    
 
 
 
