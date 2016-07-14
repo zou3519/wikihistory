@@ -5,7 +5,6 @@
 
 import argparse
 import os
-import urllib2
 import requests
 import networkx as nx
 
@@ -14,42 +13,60 @@ from newPatch import PatchSet, PatchModel
 WIKI = 'https://en.wikipedia.org/'
 LIMIT='1000'
 
+
 def downloadHistory(title):
     """
-        Downloads the full revision history of the Wikipedia page, title
-            and saves to full_histories
+        Downloads the full history of Wikipedia page, title, into
+            full_histories
     """
     print "Downloading . . ."
+    offset='0'
+    i=0
+    while offset!='1':
+        print "Starting set " + str(i) + ". . ."
+        i+=1
+        offset=downloadPartial(title, offset)
 
-    # Make directory
-    if not os.path.isdir('full_histories'):
-        os.mkdir('full_histories')
 
-    api = WIKI+ 'w/index.php?title=Special:Export&pages=' + \
-                    title.replace(' ', '_')+'&history&action=submit'
-    cachefile = os.path.join('full_histories', title.replace(" ", "_"))
-    
-    # Download and save history
-    page = urllib2.urlopen(api)
-    file = open(cachefile, 'w')
-    for line in page:
-        file.write(line)
-    file.close()
+
 
 def downloadPartial(title, offset):
-    offset=str(offset)
-    api = WIKI+ 'w/index.php?title=Special:Export&pages=' + title.replace(' ', '_') + \
+    """
+        Downloads up to 1000 revisions of a Wikipedia page, title
+    """
+    title=title.replace(' ', '_')
+    api = WIKI+ 'w/index.php?title=Special:Export&pages=' + title + \
                 '&offset='+offset+'&limit='+LIMIT+'&action=submit'
-    cachefile = 'full_histories/'+ title.replace(" ", "_")+offset+'.xml'
+
+    if not os.path.isdir('full_histories'):
+        os.mkdir('full_histories')
+    if not os.path.isdir('full_histories/'+title):
+        os.mkdir('full_histories/'+title)
+    cachefile = 'full_histories/'+ title+'/'+title+'|'+offset+'.xml'
     
     file=open(cachefile, "w")
+    
     # Download and save history
     r=requests.post(api, data="")
-    for line in r.text:
-        file.write(line)
+    last=True
+    text=r.text.split('\n')
+    for line in text:
+        line=line.encode("ascii", "ignore")
+        if last:
+            if line.strip()=='<page>':
+                last=False
+        else:
+            if line.strip()[:11]=='<timestamp>':
+                date=line.strip(' ')
+                date=date[11:-12]
+        file.write(line+'\n')
     file.close()
+    if last:
+        os.remove(cachefile)
+        return '1'
+    else:
+        return date
 
-    
 
 
 
@@ -61,6 +78,9 @@ def applyModel(title, remove):
             the PatchModel, and the most recent content.
     """
 
+    title=title.replace(" ", "_")
+    offset='0'
+
     # Make folders for model, graph, and content files
     if not os.path.isdir('GMLs'):
         os.mkdir('GMLs')
@@ -71,7 +91,7 @@ def applyModel(title, remove):
 
     # Get the list of vertices to remove
     if remove:
-        remList = getRemlist('full_histories/'+title.replace(" ", "_"))
+        remList = getRemlist(title)
 
     print "Applying model . . ."
 
@@ -84,66 +104,68 @@ def applyModel(title, remove):
     gettext= False   # have an id ready to use
     compare = False  # ready to compare content
     writeText= False  # adding to current content
-    
-    historyFile=open("full_histories/"+ title.replace(" ", "_"), "r")
 
-    line = historyFile.readline().strip()
-    while line[:4] != "<id>":
-        line=historyFile.readline().strip()
+    while os.path.isfile('full_histories/'+title+'/'+title+'|'+offset+'.xml'):
+        historyFile=open('full_histories/'+title+'/'+title+'|'+offset+'.xml', "r")
 
-    for line in historyFile:
-        line=line.strip()
+        line = historyFile.readline().strip()
+        while line[:4] != "<id>":
+            line=historyFile.readline().strip()
 
-         # Gets the next valid revision id
-        if getid:
-            if line[:4] == "<id>":
-                rvid = line[4:-5]
-                if remove and rvid in  remList: 
-                    remList.remove(rvid)
+        for line in historyFile:
+            line=line.strip()
+
+            # Gets the next valid revision id
+            if getid:
+                if line[:4] == "<id>":
+                    rvid = line[4:-5]
+                    if remove and rvid in  remList: 
+                        remList.remove(rvid)
+                    else:
+                        getid=False
+                        gettime=True
+            if gettime:
+                if line[:11] == "<timestamp>":
+                    timestamp = line[11:-12]
+                    offset=timestamp
+                    gettime = False
+                    gettext=True
+
+            # Have an id ready to use, looking for start of content
+            if gettext:
+                if line[:5] == "<text":
+                    content= ""
+                    line = line.split('">')
+                    if len(line) == 1:
+                        line += [""]
+                    line = line[1]+"\n"
+                    gettext=False
+                    writeText=True
+        
+            # Have reached start if content, looking for end
+            if writeText:
+                if line[-7:] == "</text>":
+                    content+=line[:-7]
+                    writeText=False
+                    compare = True
                 else:
-                    getid=False
-                    gettime=True
-        if gettime:
-            if line[:11] == "<timestamp>":
-                timestamp = line[11:-12]
-                gettime = False
-                gettext=True
-
-        # Have an id ready to use, looking for start of content
-        if gettext:
-            if line[:5] == "<text":
-                content= ""
-                line = line.split('">')
-                if len(line) == 1:
-                    line += [""]
-                line = line[1]+"\n"
-                gettext=False
-                writeText=True
+                    content+=line+"\n"
         
-        # Have reached start if content, looking for end
-        if writeText:
-            if line[-7:] == "</text>":
-                content+=line[:-7]
-                writeText=False
-                compare = True
-            else:
-                content+=line+"\n"
-        
-        # Have text ready to compare. 
-        # Apply to the PatchModel and write dependencies to graph.
-        if compare:
-            contentList=content.split()
-            ps = PatchSet.psdiff(pid, prev, contentList)
-            pid+=len(ps.patches)
-            for p in ps.patches:
-                model.apply_patch(p, timestamp) #list of out-edges from rev
+            # Have text ready to compare. 
+            # Apply to the PatchModel and write dependencies to graph.
+            if compare:
+                contentList=content.split()
+                ps = PatchSet.psdiff(pid, prev, contentList)
+                pid+=len(ps.patches)
+                for p in ps.patches:
+                    model.apply_patch(p, timestamp) #list of out-edges from rev
             
-            prev = contentList
-            compare = False
-            getid = True
+                prev = contentList
+                compare = False
+                getid = True
 
         
-    historyFile.close()
+        historyFile.close()
 
     if remove:
         cachefile = title.replace(" ", "_")+'_rem.txt'
@@ -171,37 +193,44 @@ def applyModel(title, remove):
 
 
 
-def getRemlist(filename):
+def getRemlist(title):
     """
         Gets a list of ids of revisions that are bot reverts
         or that were reverted by bots
     """
     print "Removing bot rv."
-    file = open(filename, "r")
-    
+    offset='0'
     remList = []
-    username=False
     
-    for line in file:
-        line=line.strip()
+    while os.path.isfile('full_histories/'+title+'/'+title+'|'+offset+'.xml'):
+        
+        file = open('full_histories/'+title+'/'+title+'|'+offset+'.xml', "r")
+        
+        username=False
+    
+        for line in file:
+            line=line.strip()
 
-        if not username and line[:4] == "<id>":
-            rvid = line[4:-5]
+            if not username and line[:4] == "<id>":
+                rvid = line[4:-5]
 
-        if line[:10] == "<username>":
-            username=True
-        else:
-            username=False
+            if line[:10] == "<username>":
+                username=True
+            else:
+                username=False
 
-        if line[:10] == "<parentid>":
-            parentid=line[10:-11]
+            if line[:10] == "<parentid>":
+                parentid=line[10:-11]
 
-        if line[:9]=="<comment>":
-            if "BOT - rv" in line:
-                remList.append(rvid)
-                remList.append(parentid)
+            elif line[:11]=='<timestamp>':
+                offset=line[11:-12]
 
-    file.close()
+            elif line[:9]=="<comment>":
+                if "BOT - rv" in line:
+                    remList.append(rvid)
+                    remList.append(parentid)
+
+        file.close()
     return remList
 
 
@@ -298,7 +327,7 @@ def wiki2graph(title, remove, new):
     # Apply model. Download full history if necessary
     else:
         file = title.replace(" ", "_")
-        if not os.path.isdir('full_histories') or not os.path.isfile("full_histories/"+file):
+        if not os.path.isdir('full_histories') or not os.path.isdir("full_histories/"+title.replace(' ', '_')):
             downloadHistory(title)
         (graph, content, model) = applyModel(title, remove)
 
