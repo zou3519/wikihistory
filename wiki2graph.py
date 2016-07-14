@@ -51,7 +51,8 @@ def downloadPartial(title, offset):
     last=True
     text=r.text.split('\n')
     for line in text:
-        line=line.encode("ascii", "ignore")
+        print line
+        #line=line.encode("ascii", "ignore")
         if last:
             if line.strip()=='<page>':
                 last=False
