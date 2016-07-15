@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import wiki2graph as w2g
 
 
 # Assumes the existence of a dictionary from an applied metric,
