@@ -1,12 +1,11 @@
 #!/usr/bin/python
 
-import optparse
 import os
-import wiki2graph as w2g
-import metric
+
 
 # Assumes the existence of a dictionary from an applied metric,
 #   a content file, and a model file
+
 
 def colorPercentile(model, metricDict):
     """
@@ -52,9 +51,11 @@ def colorPercentile(model, metricDict):
     
 def writeColors(title, remove, metricName, model, content, colors):
     """
+        Writes the most recent revision to a .html file based on the dictionary
+            colors.
+        metricName will be part of the file title
     """
     print "Writing heat map . . ."
-    # Write style sheet
 
     if not os.path.isdir('heatmaps'):
         os.mkdir('heatmaps')
@@ -64,6 +65,7 @@ def writeColors(title, remove, metricName, model, content, colors):
     else:
         colorFile = open("heatmaps/"+(metricName+"_"+title).replace(" ", "_")+".html", "w")
 
+    # Write style sheet
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style/>\n")
     colorFile.write(".white {\n\tbackground-color: white;\n\tcolor: black;\n}\n")
     colorFile.write(".pink {\n\tbackground-color: #ffcccc;\n\tcolor: black;\n}\n")
@@ -76,7 +78,6 @@ def writeColors(title, remove, metricName, model, content, colors):
     # Write content
     colorFile.write("<body>\n")
 
-    
     content=content.split("\n")
     content=[line.split() for line in content]
 
@@ -107,48 +108,11 @@ def writeColors(title, remove, metricName, model, content, colors):
 
 def metric2color(title, remove, metricName, metricDict):
     """
+        Writes a heatmap of the most recent revision of title as a .html
+            file in heatmaps, based on the percentile of the text according
+            to metricDict.
     """
     content = w2g.readContent(title, remove)
     model = w2g.readModel(title, remove)
     colors=colorPercentile(model, metricDict)
     writeColors(title, remove, metricName, model, content, colors)
-
-
-
-def parse_args():
-    """parse_args parses sys.argv for wiki2graph."""
-    # Help Menu
-    parser = optparse.OptionParser(usage='%prog [options] title')
-    parser.add_option('-r', '--remove',
-                      action='store_true', dest='remove', default=False,
-                      help='remove mass deletions')
-    parser.add_option('-n', '--new',
-                      action='store_true', dest='new', default=False,
-                      help='reapply model even if cached')
-    parser.add_option('-m', '--metric',
-                      type='str', dest='mtype', default='height',
-                      help='name of metric: height, closeness, out_degree, betweenness',
-                      metavar='MTYPE')
-
-    (opts, args) = parser.parse_args()
-
-    # Parser Errors
-    if len(args) != 1:
-        parser.error('incorrect number of arguments')
-
-    (graph, content, model) = w2g.wiki2graph(args[0], remove=opts.remove, new=opts.new)
-    heights = metric.getHeight(graph)
-    metric2color(args[0], remove = opts.remove, metricName = "height", metricDict = heights)
-
-    # n=parser.parse_args()
-
-    # wiki2graph(n.title[0], n.remove, n.new)
-
-    # (graph, content, model) = w2g.wiki2graph(n.title[0], n.remove, n.new)
-    # heights=metric.heights(graph)
-    # metric2color(n.title[0], n.remove, "height", heights)
-
-
-if __name__ == '__main__':
-    parse_args()
-

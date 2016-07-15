@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+
 # Contains all function that involve the full Wikipedia history
 #    and forming the model/graph
 
@@ -7,11 +8,13 @@ import argparse
 import os
 import requests
 import networkx as nx
-
 from newPatch import PatchSet, PatchModel
+
 
 WIKI = 'https://en.wikipedia.org/'
 LIMIT='1000'
+
+
 
 
 def downloadHistory(title):
@@ -33,17 +36,20 @@ def downloadHistory(title):
 def downloadPartial(title, offset):
     """
         Downloads up to 1000 revisions of a Wikipedia page, title
+            starting at offset.
+        Offset '0' gets the first revision.
     """
     title=title.replace(' ', '_')
     api = WIKI+ 'w/index.php?title=Special:Export&pages=' + title + \
                 '&offset='+offset+'&limit='+LIMIT+'&action=submit'
 
+    # Set up folder for the new history, if needed
     if not os.path.isdir('full_histories'):
         os.mkdir('full_histories')
     if not os.path.isdir('full_histories/'+title):
         os.mkdir('full_histories/'+title)
-    cachefile = 'full_histories/'+ title+'/'+title+'|'+offset+'.xml'
     
+    cachefile = 'full_histories/'+ title+'/'+title+'|'+offset+'.xml'
     file=open(cachefile, "w")
     
     # Download and save history
@@ -51,8 +57,7 @@ def downloadPartial(title, offset):
     last=True
     text=r.text.split('\n')
     for line in text:
-        print line
-        #line=line.encode("ascii", "ignore")
+        line=line.encode("ascii", "ignore")
         if last:
             if line.strip()=='<page>':
                 last=False
@@ -62,6 +67,8 @@ def downloadPartial(title, offset):
                 date=date[11:-12]
         file.write(line+'\n')
     file.close()
+
+    # Return offset of next revision
     if last:
         os.remove(cachefile)
         return '1'
@@ -202,6 +209,7 @@ def getRemlist(title):
     print "Removing bot rv."
     offset='0'
     remList = []
+    title=title.replace(" ", "_")
     
     while os.path.isfile('full_histories/'+title+'/'+title+'|'+offset+'.xml'):
         
