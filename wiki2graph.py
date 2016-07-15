@@ -77,8 +77,6 @@ def downloadPartial(title, offset):
 
 
 
-
-
 def applyModel(title, remove):
     """
         Applies PatchModel to the history for Wikipedia page, title.
