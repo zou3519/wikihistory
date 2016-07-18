@@ -44,7 +44,7 @@ def colorPercentile(model, metricDict):
         colors[a[i][1]]="pink"
     for i in range(percentLen*25,length):
         colors[a[i][1]]="white"
-    
+    print colors
     return colors
 
 

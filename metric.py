@@ -18,7 +18,7 @@ def getAllHeights(graph):
         for (src, dst, dist) in graph.out_edges_iter(node, data='dist'):
             if type(dst) != int:
                 intdst = int(dst.decode("utf-8"))
-             intsrc = int(src.decode("utf-8"))
+                intsrc = int(src.decode("utf-8"))
                 prob = graph.edge[src][dst]['prob'] 
                 height += (heightDict[intdst] + dist)*prob
             else:

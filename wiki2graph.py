@@ -7,6 +7,8 @@
 import argparse
 import os
 import requests
+import codecs
+import gensim
 import networkx as nx
 from newPatch import PatchSet, PatchModel
 
@@ -26,7 +28,7 @@ def downloadHistory(title):
     offset='0'
     i=0
     while offset!='1':
-        print "Starting set " + str(i) + ". . ."
+        print "Starting set " + str(i) + " . . ."
         i+=1
         offset=downloadPartial(title, offset)
 
@@ -56,8 +58,8 @@ def downloadPartial(title, offset):
     r=requests.post(api, data="")
     last=True
     text=r.text.split('\n')
+    file=codecs.open(cachefile, "w", "utf-8")
     for line in text:
-        line=line.encode("ascii", "ignore")
         if last:
             if line.strip()=='<page>':
                 last=False
@@ -112,7 +114,7 @@ def applyModel(title, remove):
     writeText= False  # adding to current content
 
     while os.path.isfile('full_histories/'+title+'/'+title+'|'+offset+'.xml'):
-        historyFile=open('full_histories/'+title+'/'+title+'|'+offset+'.xml', "r")
+        historyFile=codecs.open('full_histories/'+title+'/'+title+'|'+offset+'.xml', "r", "utf-8")
 
         line = historyFile.readline().strip()
         while line[:4] != "<id>":
@@ -160,6 +162,8 @@ def applyModel(title, remove):
             # Have text ready to compare. 
             # Apply to the PatchModel and write dependencies to graph.
             if compare:
+                content=gensim.corpora.wikicorpus.filter_wiki(content)
+                content=content.encode("ascii", "replace")
                 contentList=content.split()
                 ps = PatchSet.psdiff(pid, prev, contentList)
                 pid+=len(ps.patches)
@@ -211,7 +215,7 @@ def getRemlist(title):
     
     while os.path.isfile('full_histories/'+title+'/'+title+'|'+offset+'.xml'):
         
-        file = open('full_histories/'+title+'/'+title+'|'+offset+'.xml', "r")
+        file = codecs.open('full_histories/'+title+'/'+title+'|'+offset+'.xml', "r", "utf-8")
         
         username=False
     
