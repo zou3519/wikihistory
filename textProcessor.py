@@ -71,21 +71,38 @@ class WikiIter(object):
         historyFile.close()
 
 class MyCorpus(object):
-    def __iter__(self, wikiiter, dictionary):
-        for (rvid, time, doc) in wikiiter:
-            yield dictionary.doc2bow(doc.split())
+    def __init__(self, wikiiter, dictionary):
+        self.wikiiter=wikiiter
+        self.dictionary=dictionary
+    def __iter__(self):
+        for (rvid, time, doc) in self.wikiiter:
+            yield self.dictionary.doc2bow(doc.split())
 
-corpus=MyCorpus()
-wiki = WikiIter()
-dictionary=gensim.corpora.Dictionary(content.lower().split() 
-            for (rvid, timestamp, content) in wiki.__iter__("Mesostigma", "0"))
-stoplist=set('for a of the and to in'.split())
 
-stop_ids=[dictionary.token2id[stopword] for stopword in stoplist 
+def saveCorpus(title):
+    """
+    """
+    wiki = WikiIter()
+    dictionary=gensim.corpora.Dictionary(content.lower().split() 
+            for (rvid, timestamp, content) in wiki.__iter__(title, "0"))
+    stoplist=set('for a of the and to in'.split())
+
+    stop_ids=[dictionary.token2id[stopword] for stopword in stoplist 
                 if stopword in dictionary.token2id]
-once_ids=[tokenid for tokenid, docfreq in dictionary.dfs.iteritems() if docfreq==1]
-dictionary.filter_tokens(stop_ids+once_ids)
-dictionary.compactify()
-print(dictionary)
-for vector in corpus.__iter__(wiki.__iter__("Mesostigma", "0"), dictionary):
-    print vector
+    once_ids=[tokenid for tokenid, docfreq in dictionary.dfs.iteritems() if docfreq==1]
+    dictionary.filter_tokens(stop_ids+once_ids)
+    dictionary.compactify()
+
+    corpus=MyCorpus(wiki.__iter__(title, "0"), dictionary)
+    file=title.replace(" ", "_")+'.mm'
+    gensim.corpora.MmCorpus.serialize(file, corpus)
+
+def readCorpus(title):
+    """
+    """
+    file=title.replace(" ", "_")+'.mm'
+    return gensim.corpora.MmCorpus(file)
+
+saveCorpus("Mesostigma")
+corpus=readCorpus("Mesostigma")
+print(corpus)
