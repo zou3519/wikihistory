@@ -8,7 +8,7 @@ import argparse
 import os
 import requests
 import codecs
-import gensim
+import textProcess as proc
 import networkx as nx
 from newPatch import PatchSet, PatchModel
 
@@ -87,7 +87,6 @@ def applyModel(title, remove):
     """
 
     title=title.replace(" ", "_")
-    offset='0'
 
     # Make folders for model, graph, and content files
     if not os.path.isdir('GMLs'):
@@ -106,77 +105,24 @@ def applyModel(title, remove):
     model = PatchModel()
     prev = []
     pid=0
+    offset='0'
+    wikiit=proc.WikiIter()
     
-    getid = True # can read id from doc
-    gettime = False # have id ready to use, can read time from doc 
-    gettext= False   # have an id ready to use
-    compare = False  # ready to compare content
-    writeText= False  # adding to current content
-
-    while os.path.isfile('full_histories/'+title+'/'+title+'|'+offset+'.xml'):
-        historyFile=codecs.open('full_histories/'+title+'/'+title+'|'+offset+'.xml', "r", "utf-8")
-
-        line = historyFile.readline().strip()
-        while line[:4] != "<id>":
-            line=historyFile.readline().strip()
-
-        for line in historyFile:
-            line=line.strip()
-
-            # Gets the next valid revision id
-            if getid:
-                if line[:4] == "<id>":
-                    rvid = line[4:-5]
-                    if remove and rvid in  remList: 
-                        remList.remove(rvid)
-                    else:
-                        getid=False
-                        gettime=True
-            if gettime:
-                if line[:11] == "<timestamp>":
-                    timestamp = line[11:-12]
-                    offset=timestamp
-                    gettime = False
-                    gettext=True
-
-            # Have an id ready to use, looking for start of content
-            if gettext:
-                if line[:5] == "<text":
-                    content= ""
-                    line = line.split('">')
-                    if len(line) == 1:
-                        line += [""]
-                    line = line[1]+"\n"
-                    gettext=False
-                    writeText=True
-        
-            # Have reached start if content, looking for end
-            if writeText:
-                if line[-7:] == "</text>":
-                    content+=line[:-7]
-                    writeText=False
-                    compare = True
-                else:
-                    content+=line+"\n"
-        
-            # Have text ready to compare. 
-            # Apply to the PatchModel and write dependencies to graph.
-            if compare:
-                content=gensim.corpora.wikicorpus.filter_wiki(content)
-                content=content.encode("ascii", "replace")
-                contentList=content.split()
-                ps = PatchSet.psdiff(pid, prev, contentList)
-                pid+=len(ps.patches)
-                for p in ps.patches:
-                    model.apply_patch(p, timestamp) #list of out-edges from rev
+    for (rvid, timestamp, content) in wikiit.__iter__(title, offset):
+       
+        # Apply to the PatchModel and write dependencies to graph.
+        if remove and rvid in remList:
+            remList.remove(rvid)
+        else:
+            content=content.encode("ascii", "replace")
+            contentList=content.split()
+            ps = PatchSet.psdiff(pid, prev, contentList)
+            pid+=len(ps.patches)
+            for p in ps.patches:
+                model.apply_patch(p, timestamp) #list of out-edges from rev
             
-                prev = contentList
-                compare = False
-                getid = True
-
+            prev = contentList
         
-        historyFile.close()
-
     if remove:
         cachefile = title.replace(" ", "_")+'_rem.txt'
     else:

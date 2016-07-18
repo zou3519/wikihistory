@@ -44,7 +44,7 @@ def colorPercentile(model, metricDict):
         colors[a[i][1]]="pink"
     for i in range(percentLen*25,length):
         colors[a[i][1]]="white"
-    print colors
+    
     return colors
 
 
@@ -73,7 +73,7 @@ def writeColors(title, remove, metricName, model, content, colors):
     colorFile.write(".lightred {\n\tbackground-color: #ff9999;\n\tcolor: black;\n}\n")
     colorFile.write(".mediumred {\n\tbackground-color: #ff4d4d;\n\tcolor: black;\n}\n")
     colorFile.write(".red {\n\tbackground-color: #cc0000;\n\tcolor: black;\n}\n")
-    colorFile.write(".darkred {\n\tbackground-color: #990000;\n\tcolor: blacj=k;}\n")
+    colorFile.write(".darkred {\n\tbackground-color: #990000;\n\tcolor: black;}\n")
     colorFile.write("</style>\n</head>\n")
 
     # Write content
