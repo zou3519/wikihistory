@@ -82,6 +82,9 @@ class MyCorpus(object):
 def saveCorpus(title):
     """
     """
+    if not os.path.isdir('corpus'):
+        os.mkdir('corpus')
+
     wiki = WikiIter()
     dictionary=gensim.corpora.Dictionary(content.lower().split() 
             for (rvid, timestamp, content) in wiki.__iter__(title, "0"))
@@ -94,15 +97,17 @@ def saveCorpus(title):
     dictionary.compactify()
 
     corpus=MyCorpus(wiki.__iter__(title, "0"), dictionary)
-    file=title.replace(" ", "_")+'.mm'
+    file='corpus/' + title.replace(" ", "_")+'.mm'
     gensim.corpora.MmCorpus.serialize(file, corpus)
 
 def readCorpus(title):
     """
     """
-    file=title.replace(" ", "_")+'.mm'
+    file='corpus/' + title.replace(" ", "_")+'.mm'
+    if not os.path.isdir('corpus') or not os.path.isfile(file):
+        print "File does not exist."
+        return
     return gensim.corpora.MmCorpus(file)
 
-saveCorpus("Mesostigma")
-corpus=readCorpus("Mesostigma")
-print(corpus)
+corpus=readCorpus("Steve")
+
