@@ -8,9 +8,9 @@ import argparse
 import os
 import requests
 import codecs
-import textProcess as proc
+import textProcessor as proc
 import networkx as nx
-from newPatch import PatchSet, PatchModel
+from Patch import PatchSet, PatchModel
 
 
 WIKI = 'https://en.wikipedia.org/'

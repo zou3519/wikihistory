@@ -9,13 +9,13 @@ class WikiIter(object):
 
     def __iter__(self, title, offset):
 
-    	title=title.replace(" ", "_")
+        title=title.replace(" ", "_")
 
         getid = True # can read id from doc
-    	gettime = False # have id ready to use, can read time from doc 
-    	gettext= False   # have an id ready to use
-    	process = False  # ready to use content
-    	writeText= False  # adding to current content
+        gettime = False # have id ready to use, can read time from doc 
+        gettext= False   # have an id ready to use
+        process = False  # ready to use content
+        writeText= False  # adding to current content
         
         while os.path.isfile('full_histories/'+title+'/'+title+'|'+offset+'.xml'):
             historyFile=codecs.open('full_histories/'+title+'/'+title+'|'+offset+'.xml', "r", "utf-8")
@@ -67,5 +67,25 @@ class WikiIter(object):
                     process=False
                     content = gensim.corpora.wikicorpus.filter_wiki(content)
                     yield rvid, timestamp, content
-                    
+
         historyFile.close()
+
+class MyCorpus(object):
+    def __iter__(self, wikiiter, dictionary):
+        for (rvid, time, doc) in wikiiter:
+            yield dictionary.doc2bow(doc.split())
+
+corpus=MyCorpus()
+wiki = WikiIter()
+dictionary=gensim.corpora.Dictionary(content.lower().split() 
+            for (rvid, timestamp, content) in wiki.__iter__("Mesostigma", "0"))
+stoplist=set('for a of the and to in'.split())
+
+stop_ids=[dictionary.token2id[stopword] for stopword in stoplist 
+                if stopword in dictionary.token2id]
+once_ids=[tokenid for tokenid, docfreq in dictionary.dfs.iteritems() if docfreq==1]
+dictionary.filter_tokens(stop_ids+once_ids)
+dictionary.compactify()
+print(dictionary)
+for vector in corpus.__iter__(wiki.__iter__("Mesostigma", "0"), dictionary):
+    print vector
