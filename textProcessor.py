@@ -176,7 +176,7 @@ dictionary=readDictionary("Mesostigma")
 corpus=readCorpus("Mesostigma")
 
 
-# This is one of the less semantic, but faster models.
+# tfidf is one of the less semantic, but faster models.
 # There are other options.
 #saveTfidf("Mesostigma", corpus, True)
 tfidf_model=loadTfidf("Mesostigma")
@@ -184,6 +184,21 @@ tfidf_corpus = tfidf_model[corpus]
 # use 200-500 topics
 #saveLsi("Mesostigma", tfidf_corpus, dictionary, 300)
 lsi_model=loadLsi("Mesostigma")
-lsi_corpus=lsi_model[tfidf_corpus]
-#Add saving and loading models
+
+doc1= "Mesostigma is a species of freshwater green algae which is one of the ost basal of the green algae, branching from the others near the point of the split between the Streptophyta and the Chlorophyta."
+doc2="Mesostigma viride is a species of freshwater green algae. It is now considered to be one of the earliest diverging members of the Streptophyta, one of the two lineages of green plants."
+
+vec1_bow=dictionary.doc2bow(doc1.lower().split())
+vec2_bow=dictionary.doc2bow(doc2.lower().split())
+
+lsi1=lsi_model[tfidf_model[vec1_bow]]
+lsi2=lsi_model[tfidf_model[vec2_bow]]
+
+if not os.path.isdir('test'):
+    os.mkdir('test')
+doc1=list(doc1)
+# index has to be a corpus, does not have to be the training corpus
+index=gensim.similarities.Similarity('test/index', lsi_model[tfidf_corpus], 300)
+sims=index[lsi1]
+print(list(enumerate(sims)))
 
