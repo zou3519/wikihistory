@@ -25,7 +25,7 @@ def getAllHeights(graph):
 
         if type(node)!=int:
             node = int(node.decode("utf-8"))
-        hegiht+=graph.node[node]['dist']
+        height+=graph.node[node]['dist']
         heightDict[node]= height
 
     return heightDict
