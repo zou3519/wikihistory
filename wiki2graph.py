@@ -96,6 +96,22 @@ def applyModel(title, remove):
     if not os.path.isdir('content'):
         os.mkdir('content')
 
+    print "Setting up distance comparison . . ."
+
+    # Set up semantic distance comparison
+    if not os.path.isdir("dictionaries") or not os.path.isfile('dictionaries/'+title+'.dict'):
+        proc.saveDictionary(title)
+    dictionary=proc.readDictionary(title)
+    if not os.path.isdir("corpus") or not os.path.isfile('corpus/'+title+'.mm'):
+        proc.saveCorpus(title, dictionary)
+    corpus=proc.readCorpus(title)
+    if not os.path.isdir("tfidf") or not os.path.isfile('tfidf/'+title+'.tfidf'):
+        proc.saveTfidf(title, corpus, True)
+    tfidf=proc.loadTfidf(title)
+    if not os.path.isdir("lsi") or not os.path.isfile('lsi/'+title+'.lsi'):
+        proc.saveLsi(title, tfidf, dictionary, 300)
+    lsi=proc.loadLsi(title)
+
     # Get the list of vertices to remove
     if remove:
         remList = getRemlist(title)
@@ -103,7 +119,7 @@ def applyModel(title, remove):
     print "Applying model . . ."
 
     model = PatchModel()
-    prev = []
+    prev = ""
     pid=0
     offset='0'
     wikiit=proc.WikiIter()
@@ -114,14 +130,19 @@ def applyModel(title, remove):
         if remove and rvid in remList:
             remList.remove(rvid)
         else:
+            # Get semantic distance
+            dist = 2-proc.scoreDoc(prev, content, dictionary, tfidf, lsi)[0][1]
+            
+            # Apply PatchModel
             content=content.encode("ascii", "replace")
             contentList=content.split()
-            ps = PatchSet.psdiff(pid, prev, contentList)
+            prevList=prev.split()
+            ps = PatchSet.psdiff(pid, prevList, contentList)
             pid+=len(ps.patches)
             for p in ps.patches:
-                model.apply_patch(p, timestamp) #list of out-edges from rev
+                model.apply_patch(p, timestamp, dist) #list of out-edges from rev
             
-            prev = contentList
+            prev = content
         
     if remove:
         cachefile = title.replace(" ", "_")+'_rem.txt'
@@ -271,6 +292,7 @@ def wiki2graph(title, remove, new):
     else:
         file = title.replace(" ", "_")+".txt"
 
+
     # Check if files exist to avoid reapplying model
     if not new and \
         os.path.isdir('GMLs') and os.path.isfile("GMLs/"+file) and \
@@ -281,9 +303,9 @@ def wiki2graph(title, remove, new):
         content = readContent(title, remove)
         model = readModel(title, remove)
 
+
     # Apply model. Download full history if necessary
     else:
-        file = title.replace(" ", "_")
         if not os.path.isdir('full_histories') or not os.path.isdir("full_histories/"+title.replace(' ', '_')):
             downloadHistory(title)
         (graph, content, model) = applyModel(title, remove)

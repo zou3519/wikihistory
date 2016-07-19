@@ -3,7 +3,7 @@
 import argparse
 import networkx as nx
 import timestamp as ts
-import wiki2graph as w2g
+import pie as w2g
 import metric2color as m2c
 
 def getAllHeights(graph):
@@ -15,18 +15,17 @@ def getAllHeights(graph):
     heightDict = {}
     for node in nodeList:
         height = 0
-        for (src, dst, dist) in graph.out_edges_iter(node, data='dist'):
+        for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
             if type(dst) != int:
                 intdst = int(dst.decode("utf-8"))
-                intsrc = int(src.decode("utf-8"))
-                prob = graph.edge[src][dst]['prob'] 
-                height += (heightDict[intdst] + dist)*prob
+                intsrc = int(src.decode("utf-8")) 
+                height += heightDict[intdst] *prob
             else:
-                prob=graph.edge[src][dst]['prob']
-                height += (heightDict[dst] + dist)*prob
+                height += heightDict[dst]*prob
 
         if type(node)!=int:
             node = int(node.decode("utf-8"))
+        hegiht+=graph.node[node]['dist']
         heightDict[node]= height
 
     return heightDict
@@ -42,7 +41,7 @@ def getHeight(graph, startDate):
     heightDict = {}
     for node in nodeList:
         height = 0
-        for (src, dst, dist) in graph.out_edges_iter(node, data='dist'):
+        for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
             if type(dst) != int:
                 intdst = int(dst.decode("utf-8"))
                 intsrc = int(src.decode("utf-8"))
@@ -51,19 +50,18 @@ def getHeight(graph, startDate):
                 if date<startDate:
                     height=0
                 else:
-                    prob = graph.edge[src][dst]['prob'] 
-                    height += (heightDict[intdst] + dist)*prob
+                    height += heightDict[intdst]*prob
             else:
                 date=graph.node[src]['time']
                 date=ts.ts2date(date)
                 if date < startDate:
                     height=0
                 else:
-                    prob=graph.edge[src][dst]['prob']
-                    height += (heightDict[dst] + dist)*prob 
+                    height += heightDict[dst]*prob 
 
         if type(node)!=int:
             node = int(node.decode("utf-8"))
+        height+=graph.node[node]['dist']
         heightDict[node]= height
 
     return heightDict

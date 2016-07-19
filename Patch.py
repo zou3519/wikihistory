@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import bisect
 import difflib
 import networkx as nx
@@ -117,11 +119,11 @@ class PatchModel:
     graph = nx.DiGraph()
 
 
-    def apply_patch(self, p, timestamp):
+    def apply_patch(self, p, timestamp, dist):
         """
             Adds Patch, p, to the model and graph
         """
-        self.graph.add_node(p.pid, time = timestamp, size=p.length)
+        self.graph.add_node(p.pid, time = timestamp, size=p.length, dist=dist)
         if not self.model:
             self.model.append((p.end, p.pid))
         
@@ -142,8 +144,7 @@ class PatchModel:
                 else:
                     start=self.model[sin-1][0]
                 length=self.model[sin][0]-start
-                dist = p.length+length
-                self.graph.add_edge(p.pid, pid, prob=1.0, dist=dist)
+                self.graph.add_edge(p.pid, pid, prob=1.0)
 
             # Case 2: Insertion between 2 edits or at the end of the document
             elif (ein-sin)==1:
@@ -163,8 +164,7 @@ class PatchModel:
                     length=end-nstart
                     nstart=end
                     prob=float(length)/total
-                    dist=length+p.length
-                    self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
+                    self.graph.add_edge(p.pid, pid, prob=prob)
 
             # Case 3: Replacement, insertion depends on deletions
             else:
@@ -194,8 +194,7 @@ class PatchModel:
                     if length==0:
                         length=self.graph.node[pid]['size']
                         prob=float(length)/total
-                        dist=p.length+length
-                        self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
+                        self.graph.add_edge(p.pid, pid, prob=prob)
 
 
 

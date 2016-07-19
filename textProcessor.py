@@ -188,7 +188,7 @@ def scoreDoc(index, doc, dictionary, tfidf, lsi):
     # index has to be a corpus, does not have to be the training corpus
     index=gensim.similarities.Similarity('test/index', lsi_index, 300)
     sims=index[lsi_doc]
-    print(list(enumerate(sims)))
+    return(list(enumerate(sims)))
 
 
 
