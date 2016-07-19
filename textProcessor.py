@@ -134,6 +134,56 @@ def readCorpus(title):
         return
     return gensim.corpora.MmCorpus(file)
 
+
+def saveTfidf(title, bow_corpus, normalize):
+    """
+    """
+    tfidf_model=gensim.models.TfidfModel(bow_corpus, normalize)
+    if not os.path.isdir('tfidf'):
+        os.mkdir('tfidf')
+    file='tfidf/' + title.replace(" ", "_")+'.tfidf'
+    tfidf_model.save(file)
+
+def loadTfidf(title):
+    """
+    """
+    file='tfidf/' + title.replace(" ", "_")+'.tfidf'
+    if not os.path.isdir('tfidf') or not os.path.isfile(file):
+        print "File does not exist."
+        return
+    return gensim.models.TfidfModel.load(file)
+
+def saveLsi(title, tfidf_corpus, id2word, num_topics):
+    """
+    """
+    tfidf_model=gensim.models.LsiModel(tfidf_corpus, id2word=id2word, num_topics=num_topics)
+    if not os.path.isdir('lsi'):
+        os.mkdir('lsi')
+    file='lsi/' + title.replace(" ", "_")+'.lsi'
+    tfidf_model.save(file)
+
+def loadLsi(title):
+    """
+    """
+    file='lsi/' + title.replace(" ", "_")+'.lsi'
+    if not os.path.isdir('lsi') or not os.path.isfile(file):
+        print "File does not exist."
+        return
+    return gensim.models.LsiModel.load(file)
+
+
 dictionary=readDictionary("Mesostigma")
 corpus=readCorpus("Mesostigma")
+
+
+# This is one of the less semantic, but faster models.
+# There are other options.
+#saveTfidf("Mesostigma", corpus, True)
+tfidf_model=loadTfidf("Mesostigma")
+tfidf_corpus = tfidf_model[corpus]
+# use 200-500 topics
+#saveLsi("Mesostigma", tfidf_corpus, dictionary, 300)
+lsi_model=loadLsi("Mesostigma")
+lsi_corpus=lsi_model[tfidf_corpus]
+#Add saving and loading models
 
