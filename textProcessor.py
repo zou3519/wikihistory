@@ -79,11 +79,11 @@ class MyCorpus(object):
             yield self.dictionary.doc2bow(doc.split())
 
 
-def saveCorpus(title):
+def saveDictionary(title):
     """
     """
-    if not os.path.isdir('corpus'):
-        os.mkdir('corpus')
+    if not os.path.isdir('dictionaries'):
+        os.mkdir('dictionaries')
 
     wiki = WikiIter()
     dictionary=gensim.corpora.Dictionary(content.lower().split() 
@@ -95,6 +95,31 @@ def saveCorpus(title):
     once_ids=[tokenid for tokenid, docfreq in dictionary.dfs.iteritems() if docfreq==1]
     dictionary.filter_tokens(stop_ids+once_ids)
     dictionary.compactify()
+
+    title=title.replace(" ", "_")
+    file='dictionaries/'+title+'.dict'
+    dictionary.save(file)
+
+
+def readDictionary(title):
+    """
+    """
+    title=title.replace(" ", "_")
+    file='dictionaries/'+title+'.dict'
+    if not os.path.isdir('dictionaries') or not os.path.isfile(file):
+        print "File does not exist"
+        return
+    return gensim.corpora.Dictionary.load(file)
+
+
+
+def saveCorpus(title, dictionary):
+    """
+    """
+    if not os.path.isdir('corpus'):
+        os.mkdir('corpus')
+
+    wiki = WikiIter()
 
     corpus=MyCorpus(wiki.__iter__(title, "0"), dictionary)
     file='corpus/' + title.replace(" ", "_")+'.mm'
@@ -109,5 +134,6 @@ def readCorpus(title):
         return
     return gensim.corpora.MmCorpus(file)
 
-corpus=readCorpus("Steve")
+dictionary=readDictionary("Mesostigma")
+corpus=readCorpus("Mesostigma")
 
