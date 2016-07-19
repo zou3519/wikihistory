@@ -172,33 +172,30 @@ def loadLsi(title):
     return gensim.models.LsiModel.load(file)
 
 
+def scoreDoc(index, doc, dictionary, tfidf, lsi):
+    """
+    """
+    # use 200-500 topics for tfidf
+    doc_bow=dictionary.doc2bow(doc.lower().split())
+    index_bow=[dictionary.doc2bow(index.lower().split())]
+
+
+    lsi_doc=lsi[tfidf[doc_bow]]
+    lsi_index=lsi[tfidf[index_bow]]
+
+    if not os.path.isdir('test'):
+        os.mkdir('test')
+    # index has to be a corpus, does not have to be the training corpus
+    index=gensim.similarities.Similarity('test/index', lsi_index, 300)
+    sims=index[lsi_doc]
+    print(list(enumerate(sims)))
+
+
+
 dictionary=readDictionary("Mesostigma")
-corpus=readCorpus("Mesostigma")
-
-
-# tfidf is one of the less semantic, but faster models.
-# There are other options.
-#saveTfidf("Mesostigma", corpus, True)
 tfidf_model=loadTfidf("Mesostigma")
-tfidf_corpus = tfidf_model[corpus]
-# use 200-500 topics
-#saveLsi("Mesostigma", tfidf_corpus, dictionary, 300)
 lsi_model=loadLsi("Mesostigma")
-
-doc1= "Mesostigma is a species of freshwater green algae which is one of the ost basal of the green algae, branching from the others near the point of the split between the Streptophyta and the Chlorophyta."
-doc2="Mesostigma viride is a species of freshwater green algae. It is now considered to be one of the earliest diverging members of the Streptophyta, one of the two lineages of green plants."
-
-vec1_bow=dictionary.doc2bow(doc1.lower().split())
-vec2_bow=dictionary.doc2bow(doc2.lower().split())
-
-lsi1=lsi_model[tfidf_model[vec1_bow]]
-lsi2=lsi_model[tfidf_model[vec2_bow]]
-
-if not os.path.isdir('test'):
-    os.mkdir('test')
-doc1=list(doc1)
-# index has to be a corpus, does not have to be the training corpus
-index=gensim.similarities.Similarity('test/index', lsi_model[tfidf_corpus], 300)
-sims=index[lsi1]
-print(list(enumerate(sims)))
+doc="Mesostigma viride is a species of freshwater green algae. It is now considered to be one of the earliest diverging members of the Streptophyta, one of the two lineages of green plants."
+index="Mesostigma is a species of freshwater green algae which is one of the ost basal of the green algae, branching from the others near the point of the split between the Streptophyta and the Chlorophyta."
+scoreDoc(index, doc, dictionary, tfidf_model, lsi_model)
 
