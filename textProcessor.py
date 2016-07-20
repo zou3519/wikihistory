@@ -153,10 +153,10 @@ def loadTfidf(title):
         return
     return gensim.models.TfidfModel.load(file)
 
-def saveLsi(title, tfidf_corpus, id2word, num_topics):
+def saveLsi(title, tfidf, corpus, id2word, num_topics):
     """
     """
-    tfidf_model=gensim.models.LsiModel(tfidf_corpus, id2word=id2word, num_topics=num_topics)
+    tfidf_model=gensim.models.LsiModel(tfidf[corpus], id2word=id2word, num_topics=num_topics)
     if not os.path.isdir('lsi'):
         os.mkdir('lsi')
     file='lsi/' + title.replace(" ", "_")+'.lsi'
@@ -189,13 +189,4 @@ def scoreDoc(index, doc, dictionary, tfidf, lsi):
     index=gensim.similarities.Similarity('test/index', lsi_index, 300)
     sims=index[lsi_doc]
     return(list(enumerate(sims)))
-
-
-
-dictionary=readDictionary("Mesostigma")
-tfidf_model=loadTfidf("Mesostigma")
-lsi_model=loadLsi("Mesostigma")
-doc="Mesostigma viride is a species of freshwater green algae. It is now considered to be one of the earliest diverging members of the Streptophyta, one of the two lineages of green plants."
-index="Mesostigma is a species of freshwater green algae which is one of the ost basal of the green algae, branching from the others near the point of the split between the Streptophyta and the Chlorophyta."
-scoreDoc(index, doc, dictionary, tfidf_model, lsi_model)
 

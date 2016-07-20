@@ -102,15 +102,19 @@ def applyModel(title, remove):
     if not os.path.isdir("dictionaries") or not os.path.isfile('dictionaries/'+title+'.dict'):
         proc.saveDictionary(title)
     dictionary=proc.readDictionary(title)
+    
     if not os.path.isdir("corpus") or not os.path.isfile('corpus/'+title+'.mm'):
         proc.saveCorpus(title, dictionary)
     corpus=proc.readCorpus(title)
+    
     if not os.path.isdir("tfidf") or not os.path.isfile('tfidf/'+title+'.tfidf'):
         proc.saveTfidf(title, corpus, True)
     tfidf=proc.loadTfidf(title)
+    
     if not os.path.isdir("lsi") or not os.path.isfile('lsi/'+title+'.lsi'):
-        proc.saveLsi(title, tfidf, dictionary, 300)
+        proc.saveLsi(title, tfidf, corpus, dictionary, 300)
     lsi=proc.loadLsi(title)
+
 
     # Get the list of vertices to remove
     if remove:

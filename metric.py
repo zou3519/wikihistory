@@ -3,7 +3,7 @@
 import argparse
 import networkx as nx
 import timestamp as ts
-import pie as w2g
+import wiki2graph as w2g
 import metric2color as m2c
 
 def getAllHeights(graph):
