@@ -119,6 +119,7 @@ def applyModel(title, remove):
     # Get the list of vertices to remove
     if remove:
         remList = getRemlist(title)
+       
 
     print "Applying model . . ."
 
@@ -133,6 +134,7 @@ def applyModel(title, remove):
         # Apply to the PatchModel and write dependencies to graph.
         if remove and rvid in remList:
             remList.remove(rvid)
+    
         else:
             # Get semantic distance
             dist = 2-proc.scoreDoc(prev, content, dictionary, tfidf, lsi)[0][1]
@@ -147,6 +149,7 @@ def applyModel(title, remove):
                 model.apply_patch(p, timestamp, dist) #list of out-edges from rev
             
             prev = content
+        
         
     if remove:
         cachefile = title.replace(" ", "_")+'_rem.txt'
@@ -306,6 +309,7 @@ def wiki2graph(title, remove, new):
         graph = readGraph(title, remove)
         content = readContent(title, remove)
         model = readModel(title, remove)
+
 
 
     # Apply model. Download full history if necessary

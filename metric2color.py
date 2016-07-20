@@ -23,7 +23,7 @@ def colorPercentile(model, metricDict):
     # Assign colors to nodes
     length=len(a)
 
-    percentLen = int(length*0.01)
+    percentLen = int(length*0.1)
 
     colors = {}
 
@@ -31,18 +31,18 @@ def colorPercentile(model, metricDict):
     for i in range(percentLen):
         colors[a[i][1]]="darkred"
     # 1-5
-    for i in range(percentLen, percentLen*5):
+    for i in range(percentLen, percentLen*2):
         colors[a[i][1]]="red"
     # 5-10
-    for i in range(percentLen*5, percentLen*10):
+    for i in range(percentLen*2, percentLen*3):
         colors[a[i][1]]="mediumred"
     # 10-15
-    for i in range(percentLen*10, percentLen*15):
+    for i in range(percentLen*3, percentLen*4):
         colors[a[i][1]]="lightred"
     # 15-25
-    for i in range(percentLen*15, percentLen*25):
+    for i in range(percentLen*4, percentLen*5):
         colors[a[i][1]]="pink"
-    for i in range(percentLen*25,length):
+    for i in range(percentLen*5,length):
         colors[a[i][1]]="white"
     
     return colors
