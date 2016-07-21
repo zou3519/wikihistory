@@ -75,7 +75,8 @@ def wiki2color(title, remove, new, allrevs, startDate, metricName):
         metricDict=getAllHeights(graph)
     else:
         metricDict=getHeight(graph, startDate)
-    m2c.metric2color(title, remove, metricName, metricDict)
+    #m2c.metric2color(title, remove, metricName, metricDict)
+    m2c.metric2shades(title, remove, metricName, metricDict)
 
 
 def parse_args():

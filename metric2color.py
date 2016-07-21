@@ -117,3 +117,74 @@ def metric2color(title, remove, metricName, metricDict):
     model = w2g.readModel(title, remove)
     colors=colorPercentile(model, metricDict)
     writeColors(title, remove, metricName, model, content, colors)
+
+
+
+def getShades(model, metricDict):
+    """
+        Colors the entire document based on score rather than percentile.
+    """
+    maxScore=max([metricDict[x[1]] for x in model])
+    colors={}
+    #rbg(r,b,g) From 0-255
+
+    for (end, edit) in model:
+        color=1-(metricDict[edit]/maxScore)
+        colors[edit]=color*0xffffff
+
+    return colors
+
+def writeShades(title, remove, metricName, model, content, colors):
+    """
+    """
+    print "Writing heat map . . ."
+
+    if not os.path.isdir('heatmaps'):
+        os.mkdir('heatmaps')
+    
+    if remove:
+        colorFile = open("heatmaps/"+(metricName+"_"+title).replace(" ", "_")+"_rem.html", "w")
+    else:
+        colorFile = open("heatmaps/"+(metricName+"_"+title).replace(" ", "_")+".html", "w")
+
+    # Write style sheet
+    colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style>\n")
+    colorFile.write("p {\n\tcolor: white;\n}\n")
+
+    # Write content
+    colorFile.write("</style><body>\n")
+
+    content=content.split("\n")
+    content=[line.split() for line in content]
+
+    pos=0
+    dif = model[pos][0]
+    color=int(colors[model[pos][1]])
+    
+    for line in content:
+        current = "<p><span style=background-color:#"+hex(color)[2:]+";>"
+        for i in range(len(line)):
+            if dif == 0:
+                while dif==0:
+                    pos+=1
+                    color=int(colors[model[pos][1]])
+                    dif = model[pos][0] - model[pos-1][0]
+                current+="</span><span style=background-color:#"+hex(color)[2:]+";>"
+
+            current+=line[i]+ " "
+            dif-=1
+        current+="</span></p>\n"
+        colorFile.write(current)
+
+    colorFile.write("</body>\n</html>")
+    colorFile.close()
+
+
+def metric2shades(title, remove, metricName, metricDict):
+    """
+    """
+    content = w2g.readContent(title, remove)
+    model = w2g.readModel(title, remove)
+    colors=getShades(model, metricDict)
+    writeShades(title, remove, metricName, model, content, colors)
+
