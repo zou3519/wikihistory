@@ -34,6 +34,7 @@ class WikiIter(object):
                         getid=False
                         gettime=True
 
+                # Gets the timestamp of the revision
                 if gettime:
                     if line[:11] == "<timestamp>":
                         timestamp = line[11:-12]
@@ -102,7 +103,7 @@ def saveDictionary(title):
 
 
 def readDictionary(title):
-    """
+    """Loads the gensim dictionary of title
     """
     title=title.replace(" ", "_")
     file='dictionaries/'+title+'.dict'
@@ -114,7 +115,7 @@ def readDictionary(title):
 
 
 def saveCorpus(title, dictionary):
-    """
+    """Creates a corpus using the edit history of a page
     """
     if not os.path.isdir('corpus'):
         os.mkdir('corpus')
