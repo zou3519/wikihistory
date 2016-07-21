@@ -172,9 +172,10 @@ def loadLsi(title):
     return gensim.models.LsiModel.load(file)
 
 
-def scoreDoc(index, doc, dictionary, tfidf, lsi):
+def scoreDoc(title, index, doc, dictionary, tfidf, lsi):
     """
     """
+    title=title.replace(" ", "_")
     # use 200-500 topics for tfidf
     doc_bow=dictionary.doc2bow(doc.lower().split())
     index_bow=[dictionary.doc2bow(index.lower().split())]
@@ -183,10 +184,10 @@ def scoreDoc(index, doc, dictionary, tfidf, lsi):
     lsi_doc=lsi[tfidf[doc_bow]]
     lsi_index=lsi[tfidf[index_bow]]
 
-    if not os.path.isdir('test'):
-        os.mkdir('test')
+    if not os.path.isdir('indexes'):
+        os.mkdir('indexes')
     # index has to be a corpus, does not have to be the training corpus
-    index=gensim.similarities.Similarity('test/index', lsi_index, 300)
+    index=gensim.similarities.Similarity('indexes/'+title, lsi_index, 300)
     sims=index[lsi_doc]
     return(list(enumerate(sims)))
 
