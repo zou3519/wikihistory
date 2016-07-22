@@ -7,6 +7,8 @@ import networkx as nx
 # Models individual insertions and deletions as Patches, revisions as
 #   PatchSets, and the history of ownership of text as a PatchModel
 
+
+
 class PatchType:
     """
         Add if text was inserted. Delete if text was removed

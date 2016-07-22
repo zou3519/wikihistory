@@ -6,6 +6,9 @@ import timestamp as ts
 import wiki2graph as w2g
 import metric2color as m2c
 
+
+
+
 def getAllHeights(graph):
     """
         Returns a dictionary of the vertices and their weighted heights 
@@ -29,6 +32,8 @@ def getAllHeights(graph):
         heightDict[node]= height
 
     return heightDict
+
+
 
 
 def getHeight(graph, startDate):
@@ -67,16 +72,23 @@ def getHeight(graph, startDate):
     return heightDict
 
 
-def wiki2color(title, remove, new, allrevs, startDate, metricName):
+
+
+def wiki2color(title, remove, new, allrevs, startDate, shade, metricName):
     """
+        Produces a heatmap of the metric height over the most recent revision.
     """
     (graph, content, model) = w2g.wiki2graph(title, remove, new)
     if allrevs:
         metricDict=getAllHeights(graph)
     else:
         metricDict=getHeight(graph, startDate)
-    #m2c.metric2color(title, remove, metricName, metricDict)
-    m2c.metric2shades(title, remove, metricName, metricDict)
+    if shade:
+        m2c.metric2shades(title, remove, metricName, metricDict)
+    else:
+        m2c.metric2color(title, remove, metricName, metricDict)
+
+
 
 
 def parse_args():
@@ -97,11 +109,14 @@ def parse_args():
     parser.add_argument('-s', '--start',
                       dest='start', nargs=1, default='1-1-2001',
                       help='start date for height calculation')
+    parser.add_argument('-sh', '--shade',
+                      action='store_true', dest='shade', default=False,
+                      help='color by score instead of percentile')
     parser.add_argument('metricName', nargs=1)
 
     n=parser.parse_args()
 
-    wiki2color(n.title[0], n.remove, n.new, n.allrevs, n.start[0], n.metricName[0])
+    wiki2color(n.title[0], n.remove, n.new, n.allrevs, n.start[0], n.shade, n.metricName[0])
 
 
 if __name__ == '__main__':

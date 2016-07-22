@@ -8,6 +8,12 @@ import wiki2graph as w2g
 #   a content file, and a model file
 
 
+
+NUMSHADES=1791
+
+
+
+
 def colorPercentile(model, metricDict):
     """
         Assigns edit ids in model to colors by percentile based on
@@ -120,22 +126,31 @@ def metric2color(title, remove, metricName, metricDict):
 
 
 
+
 def getShades(model, metricDict):
     """
-        Colors the entire document based on score rather than percentile.
+        Assigns a position in the color range to edits in the model, based on
+            the scores in metricDict rather than percentile.
+        Returns a dictionary of colors.
     """
     maxScore=max([metricDict[x[1]] for x in model])
     colors={}
     #rbg(r,b,g) From 0-255
 
     for (end, edit) in model:
-        color=1-(metricDict[edit]/maxScore)
-        colors[edit]=color*0xffffff
+        color=metricDict[edit]/maxScore
+        colors[edit]=int(color*NUMSHADES)
 
     return colors
 
+
+
+
 def writeShades(title, remove, metricName, model, content, colors):
     """
+        Writes the most recent revision to a .html file based on the shades in the
+            dictionary, colors.
+        metricName will be part of the file title
     """
     print "Writing heat map . . ."
 
@@ -149,7 +164,7 @@ def writeShades(title, remove, metricName, model, content, colors):
 
     # Write style sheet
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style>\n")
-    colorFile.write("p {\n\tcolor: white;\n}\n")
+    colorFile.write("p {\n\tcolor: black;\n}\n")
 
     # Write content
     colorFile.write("</style><body>\n")
@@ -159,17 +174,17 @@ def writeShades(title, remove, metricName, model, content, colors):
 
     pos=0
     dif = model[pos][0]
-    color=int(colors[model[pos][1]])
+    color=getrgb(colors[model[pos][1]])
     
     for line in content:
-        current = "<p><span style=background-color:#"+hex(color)[2:]+";>"
+        current = "<p><span style=background-color:"+color+";>"
         for i in range(len(line)):
             if dif == 0:
                 while dif==0:
                     pos+=1
-                    color=int(colors[model[pos][1]])
+                    color=getrgb(colors[model[pos][1]])
                     dif = model[pos][0] - model[pos-1][0]
-                current+="</span><span style=background-color:#"+hex(color)[2:]+";>"
+                current+="</span><span style=background-color:"+color+";>"
 
             current+=line[i]+ " "
             dif-=1
@@ -180,11 +195,51 @@ def writeShades(title, remove, metricName, model, content, colors):
     colorFile.close()
 
 
+
+
+def getrgb(color):
+    """
+        Transforms the in color into an rgb string based on
+            color's position in the color range.
+    """
+    crange=color/256
+    cval=color%256
+
+    # Loweest scores
+    # White - pink
+    if crange==0:
+        rgb='rgb(255,'+str(255-cval)+',255)'
+    # Pink - blue
+    elif crange==1:
+        rgb='rgb('+str(255-cval)+',0,255)'
+    # Blue - blue-green
+    elif crange==2:
+        rgb='rgb(0,'+str(cval)+',255)'
+    # Blue-green - green
+    elif crange==3:
+        rgb='rgb(0,255,'+str(255-cval)+')'
+    # Green - yellow
+    elif crange==4:
+        rgb='rgb('+str(cval)+',255,0)'
+    # Yellow - red
+    elif crange==5:
+        rgb='rgb(255,'+str(255-cval)+',0)'
+    # Red - black
+    else:
+        rgb='rgb('+str(255-cval)+',0,0)'
+
+    return rgb
+
+
+
+
 def metric2shades(title, remove, metricName, metricDict):
     """
+        Writes a heatmap of the most recent revision of title as a .html
+            file in heatmaps, based on the score in metricDict, rather
+            than percentile.
     """
     content = w2g.readContent(title, remove)
     model = w2g.readModel(title, remove)
     colors=getShades(model, metricDict)
     writeShades(title, remove, metricName, model, content, colors)
-
