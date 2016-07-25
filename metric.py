@@ -151,7 +151,7 @@ def wiki2color(title, remove, new, allrevs, startDate, shade, metricName):
     if allrevs:
        metricDict=allkHeights(graph)
     else:
-        metricDict=kHeight(graph)
+        metricDict=kHeight(graph, startDate)
     if shade:
         m2c.metric2shades(title, remove, metricName, metricDict)
     else:
