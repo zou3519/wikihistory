@@ -7,12 +7,11 @@ import wiki2graph as w2g
 import metric2color as m2c
 
 
-def allkHeights(graph):
+def allkHeights(graph, k):
     """
         Returns a dictionary of the vertices and their damped, weighted
             heights from the first vertex
     """
-    k=0.7
     heightDict={}
     nodeList = nx.topological_sort(graph, reverse = True)
     for node in nodeList:
@@ -39,7 +38,7 @@ def kHeight(graph, startDate):
         Returns a dictionary of the vertices and their damped, weighted heights 
             from the first vertices at or after startDate.
     """
-    k=0.7
+    k=0.5
     startDate=ts.string2date(startDate)
     nodeList = nx.topological_sort(graph, reverse = True)
     heightDict = {}

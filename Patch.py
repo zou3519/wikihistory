@@ -253,8 +253,7 @@ class PatchModel:
                     length=self.graph.node[pid]['size']
                 prob=float(length)/total
 
-                dist=p.length+length
-                self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
+                self.graph.add_edge(p.pid, pid, prob=prob)
 
 
             # Adjust indices to include Patches that end where p starts
