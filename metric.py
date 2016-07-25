@@ -19,11 +19,9 @@ def allkHeights(graph):
         height=0
         for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
             if type(dst) != int:
-                intdst = int(dst.decode("utf-8"))
-                intsrc = int(src.decode("utf-8")) 
-                height += (k*heightDict[intdst] + graph.edge[intsrc][intdst]['dist'])*prob
-            else:
-                height += (k*heightDict[dst]+graph.edge[src][dst]['dist'])*prob
+                dst = int(dst.decode("utf-8"))
+                src = int(src.decode("utf-8")) 
+            height += (k*heightDict[dst]+graph.edge[src][dst]['dist'])*prob
         heightDict[node]= height
     
     return heightDict
@@ -44,21 +42,14 @@ def kHeight(graph, startDate):
         height = 0
         for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
             if type(dst) != int:
-                intdst = int(dst.decode("utf-8"))
-                intsrc = int(src.decode("utf-8"))
-                date=graph.node[intsrc]['time']
-                date=ts.ts2date(date)
-                if date<startDate:
-                    height=0
-                else:
-                    height += k*heightDict[intdst]*prob
+                dst = int(dst.decode("utf-8"))
+                src = int(src.decode("utf-8"))
+            date=graph.node[src]['time']
+            date=ts.ts2date(date)
+            if date < startDate:
+                height=0
             else:
-                date=graph.node[src]['time']
-                date=ts.ts2date(date)
-                if date < startDate:
-                    height=0
-                else:
-                    height += k*heightDict[dst]*prob 
+                height += k*heightDict[dst]*prob 
 
         if type(node)!=int:
             node = int(node.decode("utf-8"))
@@ -82,11 +73,9 @@ def getAllHeights(graph):
         height = 0
         for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
             if type(dst) != int:
-                intdst = int(dst.decode("utf-8"))
-                intsrc = int(src.decode("utf-8")) 
-                height += heightDict[intdst] *prob
-            else:
-                height += heightDict[dst]*prob
+                dst = int(dst.decode("utf-8"))
+                src = int(src.decode("utf-8")) 
+            height += heightDict[dst]*prob
 
         if type(node)!=int:
             node = int(node.decode("utf-8"))
@@ -110,21 +99,14 @@ def getHeight(graph, startDate):
         height = 0
         for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
             if type(dst) != int:
-                intdst = int(dst.decode("utf-8"))
-                intsrc = int(src.decode("utf-8"))
-                date=graph.node[intsrc]['time']
-                date=ts.ts2date(date)
-                if date<startDate:
-                    height=0
-                else:
-                    height += heightDict[intdst]*prob
+                dst = int(dst.decode("utf-8"))
+                src = int(src.decode("utf-8"))
+            date=graph.node[src]['time']
+            date=ts.ts2date(date)
+            if date < startDate:
+                height=0
             else:
-                date=graph.node[src]['time']
-                date=ts.ts2date(date)
-                if date < startDate:
-                    height=0
-                else:
-                    height += heightDict[dst]*prob 
+                height += heightDict[dst]*prob 
 
         if type(node)!=int:
             node = int(node.decode("utf-8"))
