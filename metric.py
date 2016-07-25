@@ -7,12 +7,13 @@ import wiki2graph as w2g
 import metric2color as m2c
 
 
-def allkHeights(graph, k):
+def allkHeights(graph):
     """
         Returns a dictionary of the vertices and their damped, weighted
             heights from the first vertex
     """
     heightDict={}
+    k=0.5
     nodeList = nx.topological_sort(graph, reverse = True)
     for node in nodeList:
         height=0
@@ -20,12 +21,9 @@ def allkHeights(graph, k):
             if type(dst) != int:
                 intdst = int(dst.decode("utf-8"))
                 intsrc = int(src.decode("utf-8")) 
-                height += k*heightDict[intdst] *prob
+                height += (k*heightDict[intdst] + graph.edge[intsrc][intdst]['dist'])*prob
             else:
-                height += k*heightDict[dst]*prob
-        if type(node)!=int:
-            node = int(node.decode("utf-8"))
-        height+=graph.node[node]['dist']
+                height += (k*heightDict[dst]+graph.edge[src][dst]['dist'])*prob
         heightDict[node]= height
     
     return heightDict

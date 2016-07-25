@@ -125,7 +125,7 @@ class PatchModel:
         """
             Adds Patch, p, to the model and graph
         """
-        self.graph.add_node(p.pid, time = timestamp, size=p.length, dist=dist)
+        self.graph.add_node(p.pid, time = timestamp, size=p.length)
         if not self.model:
             self.model.append((p.end, p.pid))
         
@@ -146,7 +146,7 @@ class PatchModel:
                 else:
                     start=self.model[sin-1][0]
                 length=self.model[sin][0]-start
-                self.graph.add_edge(p.pid, pid, prob=1.0)
+                self.graph.add_edge(p.pid, pid, prob=1.0, dist=dist)
 
             # Case 2: Insertion between 2 edits or at the end of the document
             elif (ein-sin)==1:
@@ -166,7 +166,7 @@ class PatchModel:
                     length=end-nstart
                     nstart=end
                     prob=float(length)/total
-                    self.graph.add_edge(p.pid, pid, prob=prob)
+                    self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
 
             # Case 3: Replacement, insertion depends on deletions
             else:
@@ -196,7 +196,7 @@ class PatchModel:
                     if length==0:
                         length=self.graph.node[pid]['size']
                         prob=float(length)/total
-                        self.graph.add_edge(p.pid, pid, prob=prob)
+                        self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
 
 
 
@@ -253,7 +253,7 @@ class PatchModel:
                     length=self.graph.node[pid]['size']
                 prob=float(length)/total
 
-                self.graph.add_edge(p.pid, pid, prob=prob)
+                self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
 
 
             # Adjust indices to include Patches that end where p starts
