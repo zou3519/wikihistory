@@ -7,6 +7,71 @@ import wiki2graph as w2g
 import metric2color as m2c
 
 
+def allkHeights(graph):
+    """
+        Returns a dictionary of the vertices and their damped, weighted
+            heights from the first vertex
+    """
+    k=0.7
+    heightDict={}
+    nodeList = nx.topological_sort(graph, reverse = True)
+    for node in nodeList:
+        height=0
+        for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
+            if type(dst) != int:
+                intdst = int(dst.decode("utf-8"))
+                intsrc = int(src.decode("utf-8")) 
+                height += k*heightDict[intdst] *prob
+            else:
+                height += k*heightDict[dst]*prob
+        if type(node)!=int:
+            node = int(node.decode("utf-8"))
+        height+=graph.node[node]['dist']
+        heightDict[node]= height
+    
+    return heightDict
+
+
+
+
+def kHeight(graph, startDate):
+    """
+        Returns a dictionary of the vertices and their damped, weighted heights 
+            from the first vertices at or after startDate.
+    """
+    k=0.7
+    startDate=ts.string2date(startDate)
+    nodeList = nx.topological_sort(graph, reverse = True)
+    heightDict = {}
+    for node in nodeList:
+        height = 0
+        for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
+            if type(dst) != int:
+                intdst = int(dst.decode("utf-8"))
+                intsrc = int(src.decode("utf-8"))
+                date=graph.node[intsrc]['time']
+                date=ts.ts2date(date)
+                if date<startDate:
+                    height=0
+                else:
+                    height += heightDict[intdst]*prob
+            else:
+                date=graph.node[src]['time']
+                date=ts.ts2date(date)
+                if date < startDate:
+                    height=0
+                else:
+                    height += k*heightDict[dst]*prob 
+
+        if type(node)!=int:
+            node = int(node.decode("utf-8"))
+        height+=graph.node[node]['dist']
+        heightDict[node]= height
+
+    return heightDict
+
+
+
 
 
 def getAllHeights(graph):
@@ -79,10 +144,14 @@ def wiki2color(title, remove, new, allrevs, startDate, shade, metricName):
         Produces a heatmap of the metric height over the most recent revision.
     """
     (graph, content, model) = w2g.wiki2graph(title, remove, new)
+    #if allrevs:
+       # metricDict=getAllHeights(graph)
+    #else:
+        #metricDict=getHeight(graph, startDate)
     if allrevs:
-        metricDict=getAllHeights(graph)
+       metricDict=allkHeights(graph)
     else:
-        metricDict=getHeight(graph, startDate)
+        metricDict=kHeight(graph)
     if shade:
         m2c.metric2shades(title, remove, metricName, metricDict)
     else:

@@ -137,7 +137,7 @@ def applyModel(title, remove):
     
         else:
             # Get semantic distance
-            dist = 2-proc.scoreDoc(title, prev, content, dictionary, tfidf, lsi)[0][1]
+            dist = -1*proc.scoreDoc(title, prev, content, dictionary, tfidf, lsi)[0][1]
             
             # Apply PatchModel
             content=content.encode("ascii", "replace")
