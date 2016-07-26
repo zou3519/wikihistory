@@ -5,14 +5,11 @@ def time_diff(oldTime, newTime):
         Finds the time difference in minutes between 2 strings 
             in Wikipedia timestamp format.
     """
-    MINTIME = 0.01
-
     oDate=ts2date(oldTime)
     nDate=ts2date(newTime)
     delta=nDate-oDate
     minutes= float(delta.total_seconds())/60
-    if minutes==0:
-        minutes=MINTIME
+
     return minutes
 
 def ts2date(ts):
