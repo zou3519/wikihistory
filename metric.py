@@ -13,6 +13,7 @@ def tHeight(graph):
     stime=graph.node[0]['time']
     etime=graph.node[graph.nodes()[-1]]['time']
     T=ts.time_diff(stime, etime)
+    
 
     nodeList = nx.topological_sort(graph, reverse = True)
     heightDict = {}
@@ -23,7 +24,11 @@ def tHeight(graph):
                 dst = int(dst.decode("utf-8"))
                 src = int(src.decode("utf-8")) 
             t=ts.time_diff(graph.node[dst]['time'], graph.node[src]['time'])/T
-            height += (heightDict[dst]+graph.edge[src][dst]['dist']+t)*prob
+            if t==0:
+                t=1
+            #t=float(ts.time_diff(stime, graph.node[src]['time']))/T
+            dist=graph.edge[src][dst]['dist']
+            height += (heightDict[dst]+dist)*prob/t
 
         if type(node)!=int:
             node = int(node.decode("utf-8"))
