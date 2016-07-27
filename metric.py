@@ -36,8 +36,9 @@ def tHeight(graph):
         #    t=1.0/T
         #heightDict[node] = heightDict[node]/t
         t = ts.time_diff(stime, graph.node[node]['time'])
+
         heightDict[node] = heightDict[node]*t
-    print heightDict
+    
     return heightDict
 
 
@@ -166,7 +167,8 @@ def wiki2color(title, remove, new, allrevs, startDate, shade, metricName):
     if shade:
         m2c.metric2shades(title, remove, metricName, metricDict)
     else:
-        m2c.metric2color(title, remove, metricName, metricDict)
+       # m2c.metric2color(title, remove, metricName, metricDict)
+       m2c.metric2HUSL(title, remove, metricName, metricDict)
 
 
 

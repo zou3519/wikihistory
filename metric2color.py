@@ -11,6 +11,88 @@ import husl as col
 
 
 NUMSHADES=1791
+NUMHUE=260
+SATURATION = 100
+LIGHTNESS=50
+
+def getHue(model, metricDict):
+    """
+    """
+    a=[(metricDict[x[1]], x[1]) for x in model]
+    s=set(a)
+    a=sorted(list(s), reverse=True)
+    length=len(a)
+    x=float(length)/NUMHUE
+
+    colors = {}
+    for i in range(length):
+        colors[a[i][1]]=col.husl_to_hex(int(float(i)/x), SATURATION, LIGHTNESS)
+
+    return colors
+
+
+def metric2HUSL(title, remove, metricName, metricDict):
+    """
+        Writes a heatmap of the most recent revision of title as a .html
+            file in heatmaps, based on the percentile of the text according
+            to metricDict.
+    """
+    content = w2g.readContent(title, remove)
+    model = w2g.readModel(title, remove)
+    colors=getHue(model, metricDict)
+    writeHues(title, remove, metricName, model, content, colors)
+
+
+
+def writeHues(title, remove, metricName, model, content, colors):
+    """
+        Writes the most recent revision to a .html file based on the shades in the
+            dictionary, colors.
+        metricName will be part of the file title
+    """
+    print "Writing heat map . . ."
+
+    if not os.path.isdir('heatmaps'):
+        os.mkdir('heatmaps')
+    
+    if remove:
+        colorFile = open("heatmaps/"+(metricName+"_"+title).replace(" ", "_")+"_rem.html", "w")
+    else:
+        colorFile = open("heatmaps/"+(metricName+"_"+title).replace(" ", "_")+".html", "w")
+
+    # Write style sheet
+    colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style>\n")
+    colorFile.write("p {\n\tcolor: black;\n}\n")
+
+    # Write content
+    colorFile.write("</style><body>\n")
+
+    content=content.split("\n")
+    content=[line.split() for line in content]
+
+    pos=0
+    dif = model[pos][0]
+    color=colors[model[pos][1]]
+    
+    for line in content:
+        current = "<p><span style=background-color:"+color+";>"
+        for i in range(len(line)):
+            if dif == 0:
+                while dif==0:
+                    pos+=1
+                    color=colors[model[pos][1]]
+                    dif = model[pos][0] - model[pos-1][0]
+                current+="</span><span style=background-color:"+color+";>"
+
+            current+=line[i]+ " "
+            dif-=1
+        current+="</span></p>\n"
+        colorFile.write(current)
+
+    colorFile.write("</body>\n</html>")
+    colorFile.close()
+
+
 
 
 
