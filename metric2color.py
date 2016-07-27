@@ -3,6 +3,7 @@
 import os
 import wiki2graph as w2g
 import husl as col
+import codecs
 
 
 # Assumes the existence of a dictionary from an applied metric,
@@ -309,7 +310,46 @@ def bwriteColors(title, remove, metricName, model, content, colors):
     colorFile.close()
 
 
+def colorWiki(title, remove, metricName, model, content, colors):
+    """
+        Writes the most recent revision to a .html file based on the dictionary
+            colors.
+        metricName will be part of the file title
+    """
+    print "Writing heat map . . ."
 
+    if not os.path.isdir('heatmaps'):
+        os.mkdir('heatmaps')
+    
+    if remove:
+        colorFile = codecs.open("heatmaps/"+(metricName+"_"+title).replace(" ", "_")+"_rem", "w", "utf-8")
+    else:
+        colorFile = codecs.open("heatmaps/"+(metricName+"_"+title).replace(" ", "_"), "w", "utf-8")
+
+    
+
+    content=content.split("\n")
+    content=[line.split() for line in content]
+
+    pos=0
+    dif = model[pos][0]
+    color=colors[model[pos][1]]
+    
+    for line in content:
+        current = "<span background-color:"+color+";>"
+        for i in range(len(line)):
+            if dif == 0:
+                while dif==0:
+                    pos+=1
+                    color=colors[model[pos][1]]
+                    dif = model[pos][0] - model[pos-1][0]
+                current+="</span><span background-color="+color+";>"
+
+            current+=line[i]+ " "
+            dif-=1
+        current+="</span>\n"
+        colorFile.write(current)
+    colorFile.close()
 
 def metric2color(title, remove, metricName, metricDict):
     """
@@ -321,7 +361,7 @@ def metric2color(title, remove, metricName, metricDict):
     model = w2g.readModel(title, remove)
     colors=bcolorPercentile(model, metricDict)
     bwriteColors(title, remove, metricName, model, content, colors)
-
+    #colorWiki(title, remove, metricName, model, content, colors)
 
 
 

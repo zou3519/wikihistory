@@ -1,12 +1,47 @@
 #!/usr/bin/python
 
 import argparse
+import math
 import networkx as nx
 import timestamp as ts
 import wiki2graph as w2g
 import metric2color as m2c
 
 
+def tHeight(graph):
+    """
+        Returns a dictionary of the vertices and their weighted heights 
+            from the first vertices at or after startDate.
+    """
+    nodeList = nx.topological_sort(graph, reverse = True)
+    heightDict = {}
+    stime=graph.node[0]['time']
+    # Might need to redefine end time. Really should be date of download.
+    etime=graph.node[graph.nodes()[-1]]['time']
+    T=ts.time_diff(stime, etime)
+
+    for node in nodeList:
+        height = 0
+        for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
+            if type(dst) != int:
+                dst = int(dst.decode("utf-8"))
+                src = int(src.decode("utf-8"))
+            date=graph.node[src]['time']
+            t=ts.time_diff(date, etime)/T
+            scale=sigmoid(t)
+            height += (heightDict[dst]+scale*graph.edge[src][dst]['dist'])*prob 
+
+        if type(node)!=int:
+            node = int(node.decode("utf-8"))
+        heightDict[node]= height
+
+    return heightDict
+
+def sigmoid(t):
+    """
+    """
+    et=math.exp(15*(0.5-t))
+    return 1.0/(1+et)
 
 
 
@@ -70,12 +105,12 @@ def wiki2color(title, remove, new, allrevs, startDate, shade, metricName):
     """
     (graph, content, model) = w2g.wiki2graph(title, remove, new)
     if allrevs:
-       metricDict=getAllHeights(graph)
+       metricDict=tHeight(graph)
     else:
         metricDict=getHeight(graph, startDate)
    
     if shade:
-        m2c.metric2HUSL(title, remove, metricName, metricDict)
+        m2c.metric2shades(title, remove, metricName, metricDict)
     else:
         m2c.metric2color(title, remove, metricName, metricDict)
 
