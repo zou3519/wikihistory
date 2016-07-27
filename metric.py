@@ -7,6 +7,38 @@ import wiki2graph as w2g
 import metric2color as m2c
 
 
+def tHeight2(graph):
+    """
+    """
+    stime=graph.node[0]['time']
+    etime=graph.node[graph.nodes()[-1]]['time']
+    T=ts.time_diff(stime, etime)
+    
+
+    nodeList = nx.topological_sort(graph, reverse = True)
+    heightDict = {}
+    timeDict = {}
+    for node in nodeList:
+        height = 0
+        for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
+            if type(dst) != int:
+                dst = int(dst.decode("utf-8"))
+                src = int(src.decode("utf-8")) 
+            #t=float(ts.time_diff(stime, graph.node[src]['time']))/T
+            dist=graph.edge[src][dst]['dist']
+            height += (heightDict[dst]+dist)*prob
+
+        if type(node)!=int:
+            node = int(node.decode("utf-8"))
+        heightDict[node]= height
+    for node in heightDict:
+        nodeTime = ts.time_diff(graph.node[node], etime)
+        newHeight = heightDict[node]/nodeTime
+        timeDict[node] = newHeight
+
+    return timeDict
+
+
 def tHeight(graph):
     """
     """
@@ -158,7 +190,7 @@ def wiki2color(title, remove, new, allrevs, startDate, shade, metricName):
     #   metricDict=allkHeights(graph)
     #else:
      #   metricDict=kHeight(graph, startDate)
-    metricDict=tHeight(graph)
+    metricDict=tHeight2(graph)
     if shade:
         m2c.metric2shades(title, remove, metricName, metricDict)
     else:

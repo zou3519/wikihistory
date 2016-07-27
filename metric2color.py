@@ -2,6 +2,7 @@
 
 import os
 import wiki2graph as w2g
+import husl as col
 
 
 # Assumes the existence of a dictionary from an applied metric,
@@ -290,6 +291,9 @@ def writeShades(title, remove, metricName, model, content, colors):
     pos=0
     dif = model[pos][0]
     color=getrgb(colors[model[pos][1]])
+    colorValues = color.partition('(')[-1].rpartition(')')[0]
+    valuesList = colorValues.split(',')
+    adjustedColor = col.rgb_to_husl(int(valuesList[0]), int(valuesList[1]), int(valuesList[2])
     
     for line in content:
         current = "<p><span style=background-color:"+color+";>"
