@@ -330,35 +330,20 @@ def HUSLPercentile(model, metricDict):
     colors = {}
 
     
-    for i in range(int(length*0.1)):
+    for i in range(int(length*0.2)):
         colors[a[i][1]]="c0"
  
-    for i in range(int(length*0.1), int(0.2*length)):
+    for i in range(int(length*0.2), int(0.4*length)):
         colors[a[i][1]]="c1"
    
-    for i in range(int(length*0.2), int(length*0.3)):
+    for i in range(int(length*0.4), int(length*0.6)):
         colors[a[i][1]]="c2"
    
-    for i in range(int(length*0.3), int(length*0.4)):
+    for i in range(int(length*0.6), int(length*0.8)):
         colors[a[i][1]]="c3"
   
-    for i in range(int(length*0.4), int(length*0.5)):
+    for i in range(int(length*0.8), int(length)):
         colors[a[i][1]]="c4"
-
-    for i in range(int(length*0.5), int(length*0.6)):
-        colors[a[i][1]]="c5"
-
-    for i in range(int(length*0.6), int(length*0.7)):
-        colors[a[i][1]]="c6"
- 
-    for i in range(int(length*0.7), int(length*0.8)):
-        colors[a[i][1]]="c7"
-  
-    for i in range(int(length*0.8), int(length*0.9)):
-        colors[a[i][1]]="c8"
-
-    for i in range(int(length*0.9), int(length)):
-        colors[a[i][1]]="c9"
 
     
     return colors
@@ -381,16 +366,12 @@ def colorHUSL(title, remove, metricName, model, content, colors):
 
     # Write style sheet
     colorFile.write("<!DOCTYPE html>\n<html>\n<head>\n<style/>\n")
-    colorFile.write(".c0 {\n\tbackground-color: rgba(180, 2, 2, 0.86);\n\tcolor: black;\n}\n")
-    colorFile.write(".c1 {\n\tbackground-color: rgba(219, 11, 4, 0.89);\n\tcolor: black;\n}\n")
-    colorFile.write(".c2 {\n\tbackground-color: rgba(235, 102, 19, 0.76);\n\tcolor: black;\n}\n")
-    colorFile.write(".c3 {\n\tbackground-color: rgba(230, 189, 24, 0.77);\n\tcolor: black;\n}\n")
-    colorFile.write(".c4 {\n\tbackground-color: rgba(235, 228, 19, 0.83);\n\tcolor: black;}\n")
-    colorFile.write(".c5 {\n\tbackground-color: rgba(188, 246, 79, 0.79);\n\tcolor: black;\n}\n")
-    colorFile.write(".c6 {\n\tbackground-color: rgba(0, 153, 0, 0.52);\n\tcolor: black;\n}\n")
-    colorFile.write(".c7 {\n\tbackground-color: rgba(24, 195, 192, 0.39);\n\tcolor: black;\n}\n")
-    colorFile.write(".c8 {\n\tbackground-color: rgba(24, 129, 195, 0.51);\n\tcolor: black;\n}\n")
-    colorFile.write(".c9 {\n\tbackground-color: rgba(24, 83, 195, 0.55);\n\tcolor: black;}\n")
+    colorFile.write(".c0 {\n\tbackground-color: #d7191c;\n\tcolor: black;\n}\n")
+    colorFile.write(".c1 {\n\tbackground-color: #fdae61;\n\tcolor: black;\n}\n")
+    colorFile.write(".c2 {\n\tbackground-color: #ffffbf;\n\tcolor: black;\n}\n")
+    colorFile.write(".c3 {\n\tbackground-color: #abdda4;\n\tcolor: black;\n}\n")
+    colorFile.write(".c4 {\n\tbackground-color: #2b83ba;\n\tcolor: black;}\n")
+    
     colorFile.write("</style>\n</head>\n")
 
     # Write content
