@@ -7,6 +7,9 @@ import timestamp as ts
 import wiki2graph as w2g
 import metric2color as m2c
 
+# in minutes
+MONTH=43200
+YEAR=525600
 
 def tHeight(graph):
     """
@@ -18,7 +21,7 @@ def tHeight(graph):
     stime=graph.node[0]['time']
     # Might need to redefine end time. Really should be date of download.
     etime=graph.node[graph.nodes()[-1]]['time']
-    T=ts.time_diff(stime, etime)
+    #T=ts.time_diff(stime, etime)
 
     for node in nodeList:
         height = 0
@@ -27,8 +30,8 @@ def tHeight(graph):
                 dst = int(dst.decode("utf-8"))
                 src = int(src.decode("utf-8"))
             date=graph.node[src]['time']
-            t=ts.time_diff(date, etime)/T
-            scale=sigmoid(t)
+            #t=ts.time_diff(date, etime)/T
+            scale=sigmoid(date, etime)
             height += (heightDict[dst]+scale*graph.edge[src][dst]['dist'])*prob 
 
         if type(node)!=int:
@@ -37,11 +40,23 @@ def tHeight(graph):
 
     return heightDict
 
-def sigmoid(t):
+def sigmoid(date, etime):
     """
     """
-    et=math.exp(15*(0.5-t))
-    return 1.0/(1+et)
+    lowpercent=0.01
+    diff=ts.time_diff(date, etime)
+    if diff<MONTH:
+        s=1.0
+    elif diff<YEAR:
+        s= 1- float(diff-MONTH)/(YEAR-MONTH)
+        if s<lowpercent:
+            s=lowpercent
+    else:
+        s=lowpercent
+    return s
+    #et=math.exp(15*(0.5-t))
+    #return 1.0/(1+et)
+
 
 
 
