@@ -121,6 +121,7 @@ def wiki2color(title, remove, new, allrevs, startDate, shade, metricName):
     (graph, content, model) = w2g.wiki2graph(title, remove, new)
     if allrevs:
        metricDict=tHeight(graph)
+       #metricDict=getAllHeights(graph)
     else:
         metricDict=getHeight(graph, startDate)
    
