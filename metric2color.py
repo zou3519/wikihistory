@@ -2,7 +2,7 @@
 
 import os
 import wiki2graph as w2g
-import husl as col
+#import husl as col
 import codecs
 
 
@@ -16,7 +16,7 @@ NUMHUE=180
 SATURATION = 100
 LIGHTNESS=50
 
-def getHue(model, metricDict):
+"""def getHue(model, metricDict):
     """
     """
     a=[(metricDict[x[1]], x[1]) for x in model]
@@ -29,7 +29,7 @@ def getHue(model, metricDict):
     for i in range(length):
         colors[a[i][1]]=col.husl_to_hex(int(float(i)/x), SATURATION, LIGHTNESS)
 
-    return colors
+    return colors"""
 
 
 def metric2HUSL(title, remove, metricName, metricDict):
