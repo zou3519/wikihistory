@@ -17,8 +17,7 @@ SATURATION = 100
 LIGHTNESS=50
 
 """def getHue(model, metricDict):
-    """
-    """
+
     a=[(metricDict[x[1]], x[1]) for x in model]
     s=set(a)
     a=sorted(list(s), reverse=True)
