@@ -4,7 +4,7 @@
 #SBATCH -n 1
 #SBATCH -N 1
 #SBATCH -t 0-3:00
-#SBATCH -mem 8000
+#SBATCH --mem 8000
 #SBATCH -o test_%j.out
 #SBATCH -e test_%j.err
 #SBATCH --mail-type=ALL
