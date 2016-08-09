@@ -11,4 +11,4 @@
 #SBATCH --mail-user=gdiehl@hmc.edu
 
 module load python/2.7.11-fasrc01
-python metric.py "Hillary Clinton" -r -n -a "test"
+python metric.py "Paris" -r -n -a "test"
