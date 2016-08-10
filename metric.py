@@ -136,7 +136,7 @@ def wiki2color(title, remove, new, allrevs, startDate, shade, metricName):
 def parse_args():
     """parse_args parses sys.argv for wiki2color."""
     
-    parser = argparse.ArgumentParser(usage='%prog [options] title')
+    parser = argparse.ArgumentParser(usage='%%prog [options] title')
 
     parser.add_argument('title', nargs=1)
     parser.add_argument('-r', '--remove',
