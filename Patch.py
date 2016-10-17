@@ -8,7 +8,6 @@ import networkx as nx
 #   PatchSets, and the history of ownership of text as a PatchModel
 
 
-
 class PatchType:
     """
         Add if text was inserted. Delete if text was removed
@@ -17,13 +16,12 @@ class PatchType:
     DELETE = 1
 
 
-
-
 class Patch:
     """
         A Patch is a contiguous block of added or deleted words
             representing a single edit.
     """
+
     def __init__(self, pid, ptype, start, end):
         assert ptype == PatchType.ADD or ptype == PatchType.DELETE
         assert start >= 0
@@ -34,8 +32,6 @@ class Patch:
         self.start = start
         self.end = end
         self.length = end - start
-
-
 
 
 class PatchSet:
@@ -62,7 +58,7 @@ class PatchSet:
 
         # Obtain a list of differences between the texts
         diff = difflib.ndiff(old, new)
-        
+
         # Split the differences into Patches
         index = 0
         for line in diff:
@@ -70,7 +66,7 @@ class PatchSet:
                 # If equal, terminate any current patch.
                 if ptype is not None:
                     ps.append_patch(Patch(pid, ptype, start, index))
-                    pid+=1
+                    pid += 1
                     if ptype == PatchType.DELETE:
                         index = start
                     ptype = None
@@ -79,7 +75,7 @@ class PatchSet:
                 # If addition, terminate any current DELETE patch.
                 if ptype == PatchType.DELETE:
                     ps.append_patch(Patch(pid, ptype, start, index))
-                    pid+=1
+                    pid += 1
                     index = start
                     ptype = None
                 # Begin a new ADD patch, or extend an existing one.
@@ -91,7 +87,7 @@ class PatchSet:
                 # If deletion, terminate any current ADD patch.
                 if ptype == PatchType.ADD:
                     ps.append_patch(Patch(pid, ptype, start, index))
-                    pid+=1
+                    pid += 1
                     ptype = None
                 # Begin a new DELETE patch, or extend an existing one.
                 if ptype is None:
@@ -110,25 +106,22 @@ class PatchSet:
         self.patches.append(p)
 
 
-
-
 class PatchModel:
     """
         A PatchModel model gives ownership of indices of the current text to
             the Patch that last modified that section of text.
     """
-    model=[]   # A sorted list of end indices and Patch IDs.
+    model = []   # A sorted list of end indices and Patch IDs.
     graph = nx.DiGraph()
-
 
     def apply_patch(self, p, timestamp, dist):
         """
             Adds Patch, p, to the model and graph
         """
-        self.graph.add_node(p.pid, time = timestamp, size=p.length)
+        self.graph.add_node(p.pid, time=timestamp, size=p.length)
         if not self.model:
             self.model.append((p.end, p.pid))
-        
+
         elif p.ptype == PatchType.ADD:
             # Find indices that share a range with p
             sin = bisect.bisect_left(
@@ -139,33 +132,33 @@ class PatchModel:
             # Add dependencies
 
             # Case 1: Insertion into the middle of one edit
-            if sin==ein:
+            if sin == ein:
                 pid = self.model[sin][1]
-                if sin==0:
-                    start=0
+                if sin == 0:
+                    start = 0
                 else:
-                    start=self.model[sin-1][0]
-                length=self.model[sin][0]-start
+                    start = self.model[sin - 1][0]
+                length = self.model[sin][0] - start
                 self.graph.add_edge(p.pid, pid, prob=1.0, dist=dist)
 
             # Case 2: Insertion between 2 edits or at the end of the document
-            elif (ein-sin)==1:
-                total=0
-                if sin==0:
-                    start=0
+            elif (ein - sin) == 1:
+                total = 0
+                if sin == 0:
+                    start = 0
                 else:
-                    start=self.model[sin-1][0]
+                    start = self.model[sin - 1][0]
 
-                total=0
-                nstart=start
+                total = 0
+                nstart = start
                 for (end, pid) in self.model[sin:(ein + 1)]:
-                    total+=end-nstart
-                    nstart=end
-                nstart=start
+                    total += end - nstart
+                    nstart = end
+                nstart = start
                 for (end, pid) in self.model[sin:(ein + 1)]:
-                    length=end-nstart
-                    nstart=end
-                    prob=float(length)/total
+                    length = end - nstart
+                    nstart = end
+                    prob = float(length) / total
                     self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
 
             # Case 3: Replacement, insertion depends on deletions
@@ -173,32 +166,30 @@ class PatchModel:
 
                 # Get total size of dependencies to find weight of dependence
                 # Only include deletes in range
-                start=p.start
-                total=0
+                start = p.start
+                total = 0
                 for (end, pid) in self.model[sin:(ein + 1)]:
-                    if p.end<end:
-                        length=p.end-start
+                    if p.end < end:
+                        length = p.end - start
                     else:
-                        length=end-start
-                        start=end
+                        length = end - start
+                        start = end
                     # Delete patches act like invisible text
-                    if length==0:
-                        total+=self.graph.node[pid]['size']
-    
+                    if length == 0:
+                        total += self.graph.node[pid]['size']
+
                 # Add dependencies to graph with weights
-                start=p.start
+                start = p.start
                 for (end, pid) in self.model[sin:(ein + 1)]:
-                    if p.end<end:
-                        length=p.end-start
+                    if p.end < end:
+                        length = p.end - start
                     else:
-                        length=end-start
-                        start=end
-                    if length==0:
-                        length=self.graph.node[pid]['size']
-                        prob=float(length)/total
+                        length = end - start
+                        start = end
+                    if length == 0:
+                        length = self.graph.node[pid]['size']
+                        prob = float(length) / total
                         self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
-
-
 
             # Remove intermediates if present.
             # Leave the first preceeding Patch
@@ -215,9 +206,8 @@ class PatchModel:
 
             # Update proceeding spans.
             self.model[(ein + 1):] = \
-                [(end + p.length, pid) for (end, pid) \
-                in self.model[(ein + 1):]]
-
+                [(end + p.length, pid) for (end, pid)
+                 in self.model[(ein + 1):]]
 
         elif p.ptype == PatchType.DELETE:
             # Find indices of Patches who fall in the deleted range.
@@ -227,41 +217,42 @@ class PatchModel:
                 [end for (end, pid) in self.model], p.end)
 
             # Get total size of dependencies to find weight of dependence
-            start=p.start
-            total=0
+            start = p.start
+            total = 0
             for (end, pid) in self.model[sin:(ein + 1)]:
-                if p.end<end:
-                    length=p.end-start
+                if p.end < end:
+                    length = p.end - start
                 else:
-                    length=end-start
-                    start=end
+                    length = end - start
+                    start = end
                 # Delete patches act like invisible text
-                if length==0:
-                    total+=self.graph.node[pid]['size']
+                if length == 0:
+                    total += self.graph.node[pid]['size']
                 else:
-                    total+=length
+                    total += length
 
             # Add dependencies to graph with weights
-            start=p.start
+            start = p.start
             for (end, pid) in self.model[sin:(ein + 1)]:
-                if p.end<end:
-                    length=p.end-start
+                if p.end < end:
+                    length = p.end - start
                 else:
-                    length=end-start
-                    start=end
-                if length==0:
-                    length=self.graph.node[pid]['size']
-                prob=float(length)/total
+                    length = end - start
+                    start = end
+                if length == 0:
+                    length = self.graph.node[pid]['size']
+                prob = float(length) / total
 
                 self.graph.add_edge(p.pid, pid, prob=prob, dist=dist)
-
 
             # Adjust indices to include Patches that end where p starts
             #   or end where p ends.
             if sin != bisect.bisect_left(
-               [end for (end, pid) in self.model], p.start): sin -= 1
+               [end for (end, pid) in self.model], p.start):
+                   sin -= 1
             if ein != bisect.bisect_right(
-                [end for (end, pid) in self.model], p.end): ein += 1
+                    [end for (end, pid) in self.model], p.end):
+                    ein += 1
 
             # Shrink the preceding span and remove intermediates if present
             (end, pid) = self.model[sin]
@@ -278,8 +269,8 @@ class PatchModel:
 
             # Update the proceeding spans.
             self.model[(ein + 1):] = \
-                [(end - p.length, pid) for (end, pid) \
-                in self.model[(ein + 1):]]
+                [(end - p.length, pid) for (end, pid)
+                 in self.model[(ein + 1):]]
 
         else:
             assert False

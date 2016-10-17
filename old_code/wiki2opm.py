@@ -19,7 +19,7 @@ def wiki2opm(title, maximum=None, rvcontinue=0, warm=False):
     if not os.path.isdir('data'):
         os.mkdir('data')
 
-    witer = WikiIter(WIKI, title, rvcontinue=rvcontinue)    
+    witer = WikiIter(WIKI, title, rvcontinue=rvcontinue)
     progress = ProgressBar('Processing "' + title + '"', maximum=maximum)
     if not warm:
         prev = []
@@ -55,7 +55,7 @@ def wiki2opm(title, maximum=None, rvcontinue=0, warm=False):
     if not warm:
         print 'Saving graph...'
         graph.save_to(os.path.join('data', title.replace(' ', '_') + '-m' +
-            str(i) + 's' + rvcontinue + '.xml'))
+                                   str(i) + 's' + rvcontinue + '.xml'))
 
 
 def parse_args():
@@ -83,7 +83,7 @@ def parse_args():
         parser.error('incorrect number of arguments')
 
     wiki2opm(args[0], maximum=opts.maximum, rvcontinue=opts.rvcontinue,
-        warm=opts.warm)
+             warm=opts.warm)
 
 
 if __name__ == '__main__':

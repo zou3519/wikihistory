@@ -14,9 +14,7 @@ from Patch import PatchSet, PatchModel
 
 
 WIKI = 'https://en.wikipedia.org/'
-LIMIT='1000'
-
-
+LIMIT = '1000'
 
 
 def downloadHistory(title):
@@ -25,14 +23,12 @@ def downloadHistory(title):
             full_histories
     """
     print "Downloading . . ."
-    offset='0'
-    i=0
-    while offset!='1':
+    offset = '0'
+    i = 0
+    while offset != '1':
         print "Starting set " + str(i) + " . . ."
-        i+=1
-        offset=downloadPartial(title, offset)
-
-
+        i += 1
+        offset = downloadPartial(title, offset)
 
 
 def downloadPartial(title, offset):
@@ -41,33 +37,33 @@ def downloadPartial(title, offset):
             starting at offset.
         Offset '0' gets the first revision.
     """
-    title=title.replace(' ', '_')
-    api = WIKI+ 'w/index.php?title=Special:Export&pages=' + title + \
-                '&offset='+offset+'&limit='+LIMIT+'&action=submit'
+    title = title.replace(' ', '_')
+    api = WIKI + 'w/index.php?title=Special:Export&pages=' + title + \
+        '&offset=' + offset + '&limit=' + LIMIT + '&action=submit'
 
     # Set up folder for the new history, if needed
     if not os.path.isdir('full_histories'):
         os.mkdir('full_histories')
-    if not os.path.isdir('full_histories/'+title):
-        os.mkdir('full_histories/'+title)
-    
-    cachefile = 'full_histories/'+ title+'/'+title+'|'+offset+'.xml'
-    file=open(cachefile, "w")
-    
+    if not os.path.isdir('full_histories/' + title):
+        os.mkdir('full_histories/' + title)
+
+    cachefile = 'full_histories/' + title + '/' + title + '|' + offset + '.xml'
+    file = open(cachefile, "w")
+
     # Download and save history
-    r=requests.post(api, data="")
-    last=True
-    text=r.text.split('\n')
-    file=codecs.open(cachefile, "w", "utf-8")
+    r = requests.post(api, data="")
+    last = True
+    text = r.text.split('\n')
+    file = codecs.open(cachefile, "w", "utf-8")
     for line in text:
         if last:
-            if line.strip()=='<page>':
-                last=False
+            if line.strip() == '<page>':
+                last = False
         else:
-            if line.strip()[:11]=='<timestamp>':
-                date=line.strip(' ')
-                date=date[11:-12]
-        file.write(line+'\n')
+            if line.strip()[:11] == '<timestamp>':
+                date = line.strip(' ')
+                date = date[11:-12]
+        file.write(line + '\n')
     file.close()
 
     # Return offset of next revision
@@ -78,7 +74,6 @@ def downloadPartial(title, offset):
         return date
 
 
-
 def applyModel(title, remove):
     """
         Applies PatchModel to the history for Wikipedia page, title.
@@ -86,7 +81,7 @@ def applyModel(title, remove):
             the PatchModel, and the most recent content.
     """
 
-    title=title.replace(" ", "_")
+    title = title.replace(" ", "_")
 
     # Make folders for model, graph, and content files
     if not os.path.isdir('GMLs'):
@@ -99,82 +94,79 @@ def applyModel(title, remove):
     print "Setting up distance comparison . . ."
 
     # Set up semantic distance comparison
-    if not os.path.isdir("dictionaries") or not os.path.isfile('dictionaries/'+title+'.dict'):
+    if not os.path.isdir("dictionaries") or not os.path.isfile('dictionaries/' + title + '.dict'):
         proc.saveDictionary(title)
-    dictionary=proc.readDictionary(title)
-    
-    if not os.path.isdir("corpus") or not os.path.isfile('corpus/'+title+'.mm'):
-        proc.saveCorpus(title, dictionary)
-    corpus=proc.readCorpus(title)
-    
-    if not os.path.isdir("tfidf") or not os.path.isfile('tfidf/'+title+'.tfidf'):
-        proc.saveTfidf(title, corpus, True)
-    tfidf=proc.loadTfidf(title)
-    
-    if not os.path.isdir("lsi") or not os.path.isfile('lsi/'+title+'.lsi'):
-        proc.saveLsi(title, tfidf, corpus, dictionary, 300)
-    lsi=proc.loadLsi(title)
+    dictionary = proc.readDictionary(title)
 
+    if not os.path.isdir("corpus") or not os.path.isfile('corpus/' + title + '.mm'):
+        proc.saveCorpus(title, dictionary)
+    corpus = proc.readCorpus(title)
+
+    if not os.path.isdir("tfidf") or not os.path.isfile('tfidf/' + title + '.tfidf'):
+        proc.saveTfidf(title, corpus, True)
+    tfidf = proc.loadTfidf(title)
+
+    if not os.path.isdir("lsi") or not os.path.isfile('lsi/' + title + '.lsi'):
+        proc.saveLsi(title, tfidf, corpus, dictionary, 300)
+    lsi = proc.loadLsi(title)
 
     # Get the list of vertices to remove
     if remove:
         remList = getRemlist(title)
-       
 
     print "Applying model . . ."
 
     model = PatchModel()
     prev = ""
-    pid=0
-    offset='0'
-    wikiit=proc.WikiIter()
-    
+    pid = 0
+    offset = '0'
+    wikiit = proc.WikiIter()
+
     for (rvid, timestamp, content) in wikiit.__iter__(title, offset):
-       
+
         # Apply to the PatchModel and write dependencies to graph.
         if remove and rvid in remList:
             remList.remove(rvid)
-    
+
         else:
             # Get semantic distance
-            dist = 1-proc.scoreDoc(title, prev, content, dictionary, tfidf, lsi)[0][1]
-            
+            dist = 1 - proc.scoreDoc(title, prev, content,
+                                     dictionary, tfidf, lsi)[0][1]
+
             # Apply PatchModel
-            content=content.encode("ascii", "replace")
-            contentList=content.split()
-            prevList=prev.split()
+            content = content.encode("ascii", "replace")
+            contentList = content.split()
+            prevList = prev.split()
             ps = PatchSet.psdiff(pid, prevList, contentList)
-            pid+=len(ps.patches)
+            pid += len(ps.patches)
             for p in ps.patches:
-                model.apply_patch(p, timestamp, dist) #list of out-edges from rev
-            
+                # list of out-edges from rev
+                model.apply_patch(p, timestamp, dist)
+
             prev = content
-        
-        
+
     if remove:
-        cachefile = title.replace(" ", "_")+'_rem.txt'
+        cachefile = title.replace(" ", "_") + '_rem.txt'
     else:
-        cachefile = title.replace(" ", "_")+'.txt'
+        cachefile = title.replace(" ", "_") + '.txt'
 
     # Writes graph to file
-    nx.write_gml(model.graph, "GMLs/"+cachefile)
-        
+    nx.write_gml(model.graph, "GMLs/" + cachefile)
+
     # Write model to file
-    modelFile = open("models/"+ cachefile, "w")
+    modelFile = open("models/" + cachefile, "w")
     line = ""
     for patch in model.model:
-        line+= str(patch[0])+' '+str(patch[1])+'\n'
+        line += str(patch[0]) + ' ' + str(patch[1]) + '\n'
     modelFile.write(line)
     modelFile.close()
 
     # Write content to file
-    contentFile = open("content/"+ cachefile, "w")
+    contentFile = open("content/" + cachefile, "w")
     contentFile.write(content)
     contentFile.close()
-    
+
     return model.graph, content, model.model
-
-
 
 
 def getRemlist(title):
@@ -183,42 +175,41 @@ def getRemlist(title):
         or that were reverted by bots
     """
     print "Removing bot rv."
-    offset='0'
+    offset = '0'
     remList = []
-    title=title.replace(" ", "_")
-    
-    while os.path.isfile('full_histories/'+title+'/'+title+'|'+offset+'.xml'):
-        
-        file = codecs.open('full_histories/'+title+'/'+title+'|'+offset+'.xml', "r", "utf-8")
-        
-        username=False
-    
+    title = title.replace(" ", "_")
+
+    while os.path.isfile('full_histories/' + title + '/' + title + '|' + offset + '.xml'):
+
+        file = codecs.open('full_histories/' + title + '/' +
+                           title + '|' + offset + '.xml', "r", "utf-8")
+
+        username = False
+
         for line in file:
-            line=line.strip()
+            line = line.strip()
 
             if not username and line[:4] == "<id>":
                 rvid = line[4:-5]
 
             if line[:10] == "<username>":
-                username=True
+                username = True
             else:
-                username=False
+                username = False
 
             if line[:10] == "<parentid>":
-                parentid=line[10:-11]
+                parentid = line[10:-11]
 
-            elif line[:11]=='<timestamp>':
-                offset=line[11:-12]
+            elif line[:11] == '<timestamp>':
+                offset = line[11:-12]
 
-            elif line[:9]=="<comment>":
+            elif line[:9] == "<comment>":
                 if "BOT - rv" in line:
                     remList.append(rvid)
                     remList.append(parentid)
 
         file.close()
     return remList
-
-
 
 
 def readGraph(title, remove):
@@ -228,15 +219,13 @@ def readGraph(title, remove):
     """
     print "Reading graph . . ."
     if remove:
-        file = "GMLs/" + title.replace(" ", "_")+'_rem.txt'
+        file = "GMLs/" + title.replace(" ", "_") + '_rem.txt'
     else:
-        file = "GMLs/" + title.replace(" ", "_")+'.txt'
+        file = "GMLs/" + title.replace(" ", "_") + '.txt'
 
     assert os.path.isfile(file), "Graph file does not exist."
 
     return nx.read_gml(file)
-
-
 
 
 def readContent(title, remove):
@@ -246,20 +235,18 @@ def readContent(title, remove):
     print "Reading content . . ."
 
     if remove:
-        file = "content/"+title.replace(" ", "_")+"_rem.txt"
+        file = "content/" + title.replace(" ", "_") + "_rem.txt"
     else:
-        file = "content/"+title.replace(" ", "_")+".txt"
+        file = "content/" + title.replace(" ", "_") + ".txt"
 
     assert os.path.isfile(file), "Content file does not exist."
 
     contentFile = open(file, "r")
     content = ""
     for line in contentFile:
-        content+=line
+        content += line
     contentFile.close()
     return content
-
-
 
 
 def readModel(title, remove):
@@ -268,23 +255,21 @@ def readModel(title, remove):
     """
     print "Reading model . . ."
     if remove:
-        file = "models/"+title.replace(" ", "_")+"_rem.txt"
+        file = "models/" + title.replace(" ", "_") + "_rem.txt"
     else:
-        file = "models/"+title.replace(" ", "_")+".txt"
+        file = "models/" + title.replace(" ", "_") + ".txt"
 
     assert os.path.isfile(file), "Model file does not exist."
 
     modelFile = open(file, "r")
-    model=[]
+    model = []
 
     # Read model
     for line in modelFile:
-        line=line.split()
+        line = line.split()
         model.append((int(line[0]), int(line[1])))
     modelFile.close()
     return model
-
-
 
 
 def wiki2graph(title, remove, new):
@@ -295,33 +280,27 @@ def wiki2graph(title, remove, new):
         Setting new to True applies the model whether or not it is cached
     """
     if remove:
-        file = title.replace(" ", "_")+"_rem.txt"
+        file = title.replace(" ", "_") + "_rem.txt"
     else:
-        file = title.replace(" ", "_")+".txt"
-
+        file = title.replace(" ", "_") + ".txt"
 
     # Check if files exist to avoid reapplying model
     if not new and \
-        os.path.isdir('GMLs') and os.path.isfile("GMLs/"+file) and \
-        os.path.isdir('content') and os.path.isfile("content/"+file) and \
-        os.path.isdir('models/') and os.path.isfile("models/"+file):
+            os.path.isdir('GMLs') and os.path.isfile("GMLs/" + file) and \
+            os.path.isdir('content') and os.path.isfile("content/" + file) and \
+            os.path.isdir('models/') and os.path.isfile("models/" + file):
 
         graph = readGraph(title, remove)
         content = readContent(title, remove)
         model = readModel(title, remove)
 
-
-
     # Apply model. Download full history if necessary
     else:
-        if not os.path.isdir('full_histories') or not os.path.isdir("full_histories/"+title.replace(' ', '_')):
+        if not os.path.isdir('full_histories') or not os.path.isdir("full_histories/" + title.replace(' ', '_')):
             downloadHistory(title)
         (graph, content, model) = applyModel(title, remove)
 
     return graph, content, model
-
-
-
 
 
 def parse_args():
@@ -330,13 +309,13 @@ def parse_args():
     parser = argparse.ArgumentParser(usage='%prog [options] title')
     parser.add_argument('title', nargs=1)
     parser.add_argument('-r', '--remove',
-                      action='store_true', dest='remove', default=False,
-                      help='remove mass deletions')
+                        action='store_true', dest='remove', default=False,
+                        help='remove mass deletions')
     parser.add_argument('-n', '--new',
-                      action='store_true', dest='new', default=False,
-                      help='reapply model even if cached')
+                        action='store_true', dest='new', default=False,
+                        help='reapply model even if cached')
 
-    n=parser.parse_args()
+    n = parser.parse_args()
 
     wiki2graph(n.title[0], n.remove, n.new)
 
