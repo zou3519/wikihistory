@@ -3,6 +3,64 @@
 import gensim
 import os
 import codecs
+from abc import ABCMeta, abstractmethod
+
+
+class DistanceModel:
+    """Abstract class for document similarity models"""
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def score(self, previous, current):
+        """Compute the distance between current and previous"""
+        return
+
+
+class SemanticDistanceModel(DistanceModel):
+    """A model for document similarity.
+
+    Attributes:
+        title       Title of the Wikipedia article
+        dictionary  Dictionary of words in article corpus
+        corpus      Article corpus
+        tfidf       tfidf model
+        lsi         lsi model
+    """
+    def __init__(self, title):
+        self.title = title
+
+        # Set up semantic distance comparison
+        if not os.path.isdir("dictionaries") or not os.path.isfile('dictionaries/' + title + '.dict'):
+            saveDictionary(self.title)
+        self.dictionary = readDictionary(self.title)
+
+        if not os.path.isdir("corpus") or not os.path.isfile('corpus/' + title + '.mm'):
+            saveCorpus(self.title, self.dictionary)
+        self.corpus = readCorpus(self.title)
+
+        if not os.path.isdir("tfidf") or not os.path.isfile('tfidf/' + title + '.tfidf'):
+            saveTfidf(self.title, self.corpus, True)
+        self.tfidf = loadTfidf(self.title)
+
+        if not os.path.isdir("lsi") or not os.path.isfile('lsi/' + title + '.lsi'):
+            saveLsi(self.title, self.tfidf, self.corpus, self.dictionary, 300)
+        self.lsi = loadLsi(self.title)
+
+    def score(self, index, doc):
+        # use 200-500 topics for tfidf
+        doc_bow = self.dictionary.doc2bow(doc.lower().split())
+        index_bow = [self.dictionary.doc2bow(index.lower().split())]
+
+        lsi_doc = self.lsi[self.tfidf[doc_bow]]
+        lsi_index = self.lsi[self.tfidf[index_bow]]
+
+        if not os.path.isdir('indexes'):
+            os.mkdir('indexes')
+        # index has to be a corpus, does not have to be the training corpus
+        index = gensim.similarities.Similarity('indexes/' + self.title, lsi_index, 300)
+        sims = index[lsi_doc]
+        dist = 1 - list(enumerate(sims))[0][1]
+        return dist
 
 
 class WikiIter(object):
@@ -180,20 +238,7 @@ def loadLsi(title):
     return gensim.models.LsiModel.load(file)
 
 
-def scoreDoc(title, index, doc, dictionary, tfidf, lsi):
-    """
-    """
-    title = title.replace(" ", "_")
-    # use 200-500 topics for tfidf
-    doc_bow = dictionary.doc2bow(doc.lower().split())
-    index_bow = [dictionary.doc2bow(index.lower().split())]
-
-    lsi_doc = lsi[tfidf[doc_bow]]
-    lsi_index = lsi[tfidf[index_bow]]
-
-    if not os.path.isdir('indexes'):
-        os.mkdir('indexes')
-    # index has to be a corpus, does not have to be the training corpus
-    index = gensim.similarities.Similarity('indexes/' + title, lsi_index, 300)
-    sims = index[lsi_doc]
-    return(list(enumerate(sims)))
+# def scoreDoc(title, index, doc, dictionary, tfidf, lsi):
+#     """
+#     """
+    

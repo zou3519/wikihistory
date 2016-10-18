@@ -92,23 +92,7 @@ def applyModel(title, remove):
         os.mkdir('content')
 
     print "Setting up distance comparison . . ."
-
-    # Set up semantic distance comparison
-    if not os.path.isdir("dictionaries") or not os.path.isfile('dictionaries/' + title + '.dict'):
-        proc.saveDictionary(title)
-    dictionary = proc.readDictionary(title)
-
-    if not os.path.isdir("corpus") or not os.path.isfile('corpus/' + title + '.mm'):
-        proc.saveCorpus(title, dictionary)
-    corpus = proc.readCorpus(title)
-
-    if not os.path.isdir("tfidf") or not os.path.isfile('tfidf/' + title + '.tfidf'):
-        proc.saveTfidf(title, corpus, True)
-    tfidf = proc.loadTfidf(title)
-
-    if not os.path.isdir("lsi") or not os.path.isfile('lsi/' + title + '.lsi'):
-        proc.saveLsi(title, tfidf, corpus, dictionary, 300)
-    lsi = proc.loadLsi(title)
+    semantic_model = proc.SemanticDistanceModel(title)
 
     # Get the list of vertices to remove
     if remove:
@@ -130,8 +114,7 @@ def applyModel(title, remove):
 
         else:
             # Get semantic distance
-            dist = 1 - proc.scoreDoc(title, prev, content,
-                                     dictionary, tfidf, lsi)[0][1]
+            dist = semantic_model.score(prev, content)
 
             # Apply PatchModel
             content = content.encode("ascii", "replace")
