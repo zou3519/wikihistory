@@ -64,8 +64,15 @@ class SemanticDistanceModel(DistanceModel):
 
 
 class WikiIter(object):
+    """Iterates through revisions of a Wiki article"""
 
-    def __iter__(self, title, offset):
+    def __init__(self, title, offset):
+        self.title = title
+        self.offset = offset
+
+    def __iter__(self):
+        title = self.title
+        offset = self.offset
 
         title = title.replace(" ", "_")
 
@@ -75,6 +82,7 @@ class WikiIter(object):
         process = False  # ready to use content
         writeText = False  # adding to current content
 
+        # TODO(rzou): is the full history thing even right? offset is weird.
         while os.path.isfile('full_histories/' + title + '/' + title + '|' + offset + '.xml'):
             historyFile = codecs.open(
                 'full_histories/' + title + '/' + title + '|' + offset + '.xml', "r", "utf-8")
@@ -127,6 +135,7 @@ class WikiIter(object):
                     content = gensim.corpora.wikicorpus.filter_wiki(content)
                     yield rvid, timestamp, content
 
+        # TODO(rzou) I don't think this is in the right place
         historyFile.close()
 
 
@@ -146,9 +155,9 @@ def saveDictionary(title):
     if not os.path.isdir('dictionaries'):
         os.mkdir('dictionaries')
 
-    wiki = WikiIter()
+    # wiki = WikiIter()
     dictionary = gensim.corpora.Dictionary(content.lower().split()
-                                           for (rvid, timestamp, content) in wiki.__iter__(title, "0"))
+                                           for (rvid, timestamp, content) in WikiIter(title, "0"))
     stoplist = set('for a of the and to in'.split())
 
     stop_ids = [dictionary.token2id[stopword] for stopword in stoplist
@@ -180,9 +189,9 @@ def saveCorpus(title, dictionary):
     if not os.path.isdir('corpus'):
         os.mkdir('corpus')
 
-    wiki = WikiIter()
+    wiki = WikiIter(title, "0")
 
-    corpus = MyCorpus(wiki.__iter__(title, "0"), dictionary)
+    corpus = MyCorpus(wiki.__iter__(), dictionary)
     file = 'corpus/' + title.replace(" ", "_") + '.mm'
     gensim.corpora.MmCorpus.serialize(file, corpus)
 
@@ -236,9 +245,3 @@ def loadLsi(title):
         print "File does not exist."
         return
     return gensim.models.LsiModel.load(file)
-
-
-# def scoreDoc(title, index, doc, dictionary, tfidf, lsi):
-#     """
-#     """
-    

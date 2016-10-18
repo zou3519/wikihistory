@@ -104,9 +104,8 @@ def applyModel(title, remove):
     prev = ""
     pid = 0
     offset = '0'
-    wikiit = proc.WikiIter()
 
-    for (rvid, timestamp, content) in wikiit.__iter__(title, offset):
+    for (rvid, timestamp, content) in proc.WikiIter(title, offset):
 
         # Apply to the PatchModel and write dependencies to graph.
         if remove and rvid in remList:
