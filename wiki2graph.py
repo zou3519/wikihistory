@@ -74,6 +74,36 @@ def downloadPartial(title, offset):
         return date
 
 
+def setup_cache():
+    """Make folders for model, graph, and content files"""
+    if not os.path.isdir('GMLs'):
+        os.mkdir('GMLs')
+    if not os.path.isdir('models'):
+        os.mkdir('models')
+    if not os.path.isdir('content'):
+        os.mkdir('content')
+
+
+def save_to_cache(cachefile, model, content):
+    """Save graph, model, and content to cache"""
+
+    # Writes graph to file
+    nx.write_gml(model.graph, "GMLs/" + cachefile)
+
+    # Write model to file
+    modelFile = open("models/" + cachefile, "w")
+    line = ""
+    for patch in model.model:
+        line += str(patch[0]) + ' ' + str(patch[1]) + '\n'
+    modelFile.write(line)
+    modelFile.close()
+
+    # Write content to file
+    contentFile = open("content/" + cachefile, "w")
+    contentFile.write(content)
+    contentFile.close()
+
+
 def applyModel(title, remove):
     """
         Applies PatchModel to the history for Wikipedia page, title.
@@ -84,12 +114,7 @@ def applyModel(title, remove):
     title = title.replace(" ", "_")
 
     # Make folders for model, graph, and content files
-    if not os.path.isdir('GMLs'):
-        os.mkdir('GMLs')
-    if not os.path.isdir('models'):
-        os.mkdir('models')
-    if not os.path.isdir('content'):
-        os.mkdir('content')
+    setup_cache()
 
     print "Setting up distance comparison . . ."
     semantic_model = proc.SemanticDistanceModel(title)
@@ -110,44 +135,25 @@ def applyModel(title, remove):
         # Apply to the PatchModel and write dependencies to graph.
         if remove and rvid in remList:
             remList.remove(rvid)
+            continue
 
-        else:
-            # Get semantic distance
-            dist = semantic_model.score(prev, content)
+        # Get semantic distance
+        dist = semantic_model.score(prev, content)
 
-            # Apply PatchModel
-            content = content.encode("ascii", "replace")
-            contentList = content.split()
-            prevList = prev.split()
-            ps = PatchSet.psdiff(pid, prevList, contentList)
-            pid += len(ps.patches)
-            for p in ps.patches:
-                # list of out-edges from rev
-                model.apply_patch(p, timestamp, dist)
+        # Apply PatchModel
+        content = content.encode("ascii", "replace")
+        contentList = content.split()
+        prevList = prev.split()
+        ps = PatchSet.psdiff(pid, prevList, contentList)
+        pid += len(ps.patches)
+        for p in ps.patches:
+            # list of out-edges from rev
+            model.apply_patch(p, timestamp, dist)
 
-            prev = content
+        prev = content
 
-    if remove:
-        cachefile = title.replace(" ", "_") + '_rem.txt'
-    else:
-        cachefile = title.replace(" ", "_") + '.txt'
-
-    # Writes graph to file
-    nx.write_gml(model.graph, "GMLs/" + cachefile)
-
-    # Write model to file
-    modelFile = open("models/" + cachefile, "w")
-    line = ""
-    for patch in model.model:
-        line += str(patch[0]) + ' ' + str(patch[1]) + '\n'
-    modelFile.write(line)
-    modelFile.close()
-
-    # Write content to file
-    contentFile = open("content/" + cachefile, "w")
-    contentFile.write(content)
-    contentFile.close()
-
+    cachefile = title + ('_rem.txt' if remove else '.txt')
+    save_to_cache(cachefile, model, content)
     return model.graph, content, model.model
 
 

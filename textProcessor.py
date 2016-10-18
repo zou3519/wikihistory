@@ -16,6 +16,15 @@ class DistanceModel:
         return
 
 
+class BasicDistanceModel(DistanceModel):
+    """Distance between adjacent revisions is always 1"""
+    def __init__(self, title):
+        self.title = title
+
+    def score(self, previous, current):
+        return 1
+
+
 class SemanticDistanceModel(DistanceModel):
     """A model for document similarity.
 
