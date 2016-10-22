@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import argparse
-import math
 import networkx as nx
 import timestamp as ts
 import wiki2graph as w2g
@@ -19,10 +18,10 @@ def tHeight(graph):
     """
     nodeList = nx.topological_sort(graph, reverse=True)
     heightDict = {}
-    stime = graph.node[0]['time']
+    # stime = graph.node[0]['time']
     # Might need to redefine end time. Really should be date of download.
     etime = graph.node[graph.nodes()[-1]]['time']
-    #T=ts.time_diff(stime, etime)
+    # T=ts.time_diff(stime, etime)
 
     for node in nodeList:
         height = 0
@@ -31,7 +30,7 @@ def tHeight(graph):
                 dst = int(dst.decode("utf-8"))
                 src = int(src.decode("utf-8"))
             date = graph.node[src]['time']
-            #t=ts.time_diff(date, etime)/T
+            # t=ts.time_diff(date, etime)/T
             scale = sigmoid(date, etime)
             height += (heightDict[dst] + scale *
                        graph.edge[src][dst]['dist']) * prob

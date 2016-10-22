@@ -2,9 +2,6 @@
 
 import os
 import wiki2graph as w2g
-#import husl as col
-import codecs
-
 
 # Assumes the existence of a dictionary from an applied metric,
 #   a content file, and a model file
@@ -36,8 +33,9 @@ def metric2HUSL(title, remove, metricName, metricDict):
             file in heatmaps, based on the percentile of the text according
             to metricDict.
     """
-    content = w2g.readContent(title, remove)
-    model = w2g.readModel(title, remove)
+    file = title.replace(' ', '_') + ('_rem' if remove else '') + '.txt'
+    content = w2g.readContent('content/' + file)
+    model = w2g.readModel('GMLs/' + file)
     colors = getHue(model, metricDict)
     writeHues(title, remove, metricName, model, content, colors)
 
@@ -421,8 +419,9 @@ def metric2color(title, remove, metricName, metricDict):
             file in heatmaps, based on the percentile of the text according
             to metricDict.
     """
-    content = w2g.readContent(title, remove)
-    model = w2g.readModel(title, remove)
+    file = title.replace(' ', '_') + ('_rem' if remove else '') + '.txt'
+    content = w2g.readContent('content/' + file)
+    model = w2g.readModel('models/' + file)
     #colors=bcolorPercentile(model, metricDict)
     #bwriteColors(title, remove, metricName, model, content, colors)
     colors = HUSLPercentile(model, metricDict)
@@ -630,7 +629,8 @@ def metric2shades(title, remove, metricName, metricDict):
             file in heatmaps, based on the score in metricDict, rather
             than percentile.
     """
-    content = w2g.readContent(title, remove)
-    model = w2g.readModel(title, remove)
+    file = title.replace(' ', '_') + ('_rem' if remove else '') + '.txt'
+    content = w2g.readContent('content/' + file)
+    model = w2g.readModel('models/' + file)
     colors = getShades(model, metricDict)
     writeShades(title, remove, metricName, model, content, colors)
