@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-
+# TODO(rzou): completely overhaul the notion of time
 def time_diff(oldTime, newTime):
     """
         Finds the time difference in minutes between 2 strings 

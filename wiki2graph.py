@@ -11,7 +11,7 @@ import codecs
 import textProcessor as proc
 import networkx as nx
 from Patch import PatchSet, PatchModel
-
+import logging
 
 WIKI = 'https://en.wikipedia.org/'
 LIMIT = '1000'
@@ -102,6 +102,46 @@ def save_to_cache(cachefile, model, content):
     contentFile = open("content/" + cachefile, "w")
     contentFile.write(content)
     contentFile.close()
+
+
+def applyModel2():
+    logging.basicConfig(filename='example.log',level=logging.INFO)
+    file = "src/acquire/engine/Engine.scala"
+    title = "engine"
+
+    # Make folders for model, graph, and content files
+    setup_cache()
+
+    print "Setting up distance comparison . . ."
+
+    distance_model = proc.BasicDistanceModel(title)
+
+    model = PatchModel()
+    prev = ""
+    pid = 0
+    offset = 0
+
+    git_repo = proc.GitRepo("/home/rzou/acquire")
+    for (rvid, timestamp, content) in proc.GitRepoIter(git_repo, file, offset):
+
+        # Get semantic distance
+        dist = distance_model.score(prev, content)
+
+        # Apply PatchModel
+        content = content.encode("ascii", "replace")
+        contentList = content.split()
+        prevList = prev.split()
+        ps = PatchSet.psdiff(pid, prevList, contentList)
+        pid += len(ps.patches)
+        for p in ps.patches:
+            # list of out-edges from rev
+            model.apply_patch(p, timestamp, dist)
+
+        prev = content
+
+    cachefile = title + '.txt'
+    save_to_cache(cachefile, model, content)
+    return model.graph, content, model.model
 
 
 def applyModel(title, remove):
@@ -286,7 +326,8 @@ def wiki2graph(title, remove, new):
     else:
         if not os.path.isdir('full_histories') or not os.path.isdir("full_histories/" + title.replace(' ', '_')):
             downloadHistory(title)
-        (graph, content, model) = applyModel(title, remove)
+        (graph, content, model) = applyModel2()
+        # (graph, content, model) = applyModel(title, remove)
 
     return graph, content, model
 
