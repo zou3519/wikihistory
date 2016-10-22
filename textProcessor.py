@@ -104,6 +104,10 @@ class GitRepo(object):
         command = '%s show %s:%s' % (self.git, commit, path)
         return self.run_command(command)
 
+    def commit_time(self, commit):
+        command = '%s show -s --format=%%at %s' % (self.git, commit)
+        return self.run_command(command)
+
     def run_command(self, command):
         debug(command)
         process = Popen(shlex.split(command), stdout=PIPE)
@@ -141,15 +145,22 @@ class GitRepoIter(object):
             raise StopIteration()
 
         commit = self.commits[self.offset]
+
         (exit_code, content, err) = self.git_repo.show(commit, self.filepath)
         if exit_code:
             debug("Iterator failed to get next commit: %d %s %s" %
                   (exit_code, content, err))
             raise StopIteration()
-        timestamp = self.offset  # TODO(rzou)
+
+        (exit_code, timestamp, err) = self.git_repo.commit_time(commit)
+        if exit_code:
+            debug("Iterator failed to get commit time: %d %s %s" %
+                  (exit_code, timestamp, err))
+            raise StopIteration()
+
         self.offset += 1
         debug(self.offset)
-        return (commit, timestamp, content)
+        return (commit, float(timestamp), content)
 
 
 class WikiIter(object):
