@@ -47,7 +47,7 @@ def sigmoid(date, etime):
     """
     """
     lowpercent = 0.01
-    diff = ts.time_diff(date, etime)
+    diff = ts.unix_timestamp_diff_minutes(date, etime)
     if diff < MONTH:
         s = 1.0
     elif diff < YEAR:

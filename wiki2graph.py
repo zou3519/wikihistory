@@ -326,8 +326,8 @@ def wiki2graph(title, remove, new):
     else:
         if not os.path.isdir('full_histories') or not os.path.isdir("full_histories/" + title.replace(' ', '_')):
             downloadHistory(title)
-        (graph, content, model) = applyModel2()
-        # (graph, content, model) = applyModel(title, remove)
+        # (graph, content, model) = applyModel2()
+        (graph, content, model) = applyModel(title, remove)
 
     return graph, content, model
 

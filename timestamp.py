@@ -1,22 +1,18 @@
-from datetime import datetime, timedelta
-
-# TODO(rzou): completely overhaul the notion of time
-def time_diff(oldTime, newTime):
-    """
-        Finds the time difference in minutes between 2 strings 
-            in Wikipedia timestamp format.
-    """
-    oDate = ts2date(oldTime)
-    nDate = ts2date(newTime)
-    delta = nDate - oDate
-    minutes = float(delta.total_seconds()) / 60
-
-    return minutes
+import pytz
+import dateutil.parser
+from datetime import datetime
 
 
-def ts2date(ts):
-    """
-    """
+def datetime_to_unix_timestamp(dt, epoch=dateutil.parser.parse("1970-01-01T00:00:00Z")):
+    td = dt - epoch
+    return (td.microseconds + (td.seconds + td.days * 86400) * 10**6) / 10**6
+
+
+def unix_timestamp_diff_minutes(oldtime, newtime):
+    return (newtime - oldtime) / 60
+
+
+def wiki_timestamp_to_datetime(ts):
     ts = ts.split("-")
     year = int(ts[0])
     month = int(ts[1])
@@ -26,10 +22,10 @@ def ts2date(ts):
     hour = int(time[0])
     minute = int(time[1])
     second = int(time[2].strip("Z"))
+    return datetime(year, month, day, hour, minute, second, tzinfo=pytz.utc)
 
-    return datetime(year, month, day, hour, minute, second)
 
-
+# TODO: is this ever called?
 def string2date(s):
     """
         month-day-year

@@ -7,6 +7,7 @@ from abc import ABCMeta, abstractmethod
 from subprocess import Popen, PIPE
 import shlex
 import logging
+import timestamp as ts
 
 
 class DistanceModel:
@@ -21,6 +22,7 @@ class DistanceModel:
 
 class BasicDistanceModel(DistanceModel):
     """Distance between adjacent revisions is always 1"""
+
     def __init__(self, title):
         self.title = title
 
@@ -38,6 +40,7 @@ class SemanticDistanceModel(DistanceModel):
         tfidf       tfidf model
         lsi         lsi model
     """
+
     def __init__(self, title):
         self.title = title
 
@@ -69,7 +72,8 @@ class SemanticDistanceModel(DistanceModel):
         if not os.path.isdir('indexes'):
             os.mkdir('indexes')
         # index has to be a corpus, does not have to be the training corpus
-        index = gensim.similarities.Similarity('indexes/' + self.title, lsi_index, 300)
+        index = gensim.similarities.Similarity(
+            'indexes/' + self.title, lsi_index, 300)
         sims = index[lsi_doc]
         dist = 1 - list(enumerate(sims))[0][1]
         return dist
@@ -88,7 +92,8 @@ class GitRepo(object):
     def rev_list(self, path=".", reverse=False):
         """get a list of revisions"""
         reverse_flag = '--reverse' if reverse else ''
-        command = '%s rev-list %s master %s%s' % (self.git, reverse_flag, self.path, path)
+        command = '%s rev-list %s master %s%s' % (
+            self.git, reverse_flag, self.path, path)
         return self.run_command(command)
 
     def show(self, commit, path="."):
@@ -119,7 +124,8 @@ class GitRepoIter(object):
         self.filepath = filepath
         self.offset = offset
 
-        (exit_code, output, err) = self.git_repo.rev_list(path=filepath, reverse=True)
+        (exit_code, output, err) = self.git_repo.rev_list(
+            path=filepath, reverse=True)
         debug("%d %s %s" % (exit_code, output, err))
         if exit_code:
             self.commits = []
@@ -137,7 +143,8 @@ class GitRepoIter(object):
         commit = self.commits[self.offset]
         (exit_code, content, err) = self.git_repo.show(commit, self.filepath)
         if exit_code:
-            debug("Iterator failed to get next commit: %d %s %s" % (exit_code, content, err))
+            debug("Iterator failed to get next commit: %d %s %s" %
+                  (exit_code, content, err))
             raise StopIteration()
         timestamp = self.offset  # TODO(rzou)
         self.offset += 1
@@ -215,7 +222,9 @@ class WikiIter(object):
                     getid = True
                     process = False
                     content = gensim.corpora.wikicorpus.filter_wiki(content)
-                    yield rvid, timestamp, content
+                    datetime = ts.wiki_timestamp_to_datetime(timestamp)
+                    unix_timestamp = ts.datetime_to_unix_timestamp(datetime)
+                    yield rvid, unix_timestamp, content
 
         # TODO(rzou) I don't think this is in the right place
         historyFile.close()
