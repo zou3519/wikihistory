@@ -6,8 +6,6 @@
 
 import argparse
 import os
-import codecs
-import logging
 import networkx as nx
 from Patch import PatchSet, PatchModel
 from wikiprocessor import WikiIter
@@ -16,74 +14,55 @@ from distancemodels import BasicDistanceModel
 from gitprocessor import GitRepo, GitRepoIter
 
 
-def setup_cache():
-    """Make folders for model, graph, and content files"""
-    if not os.path.isdir('GMLs'):
-        os.mkdir('GMLs')
-    if not os.path.isdir('models'):
-        os.mkdir('models')
-    if not os.path.isdir('content'):
-        os.mkdir('content')
+def parse_args():
+    """parse_args parses sys.argv for wiki2graph."""
+    # Help Menu
+    parser = argparse.ArgumentParser(usage='%prog [options] title')
+    parser.add_argument('title', nargs=1)
+    parser.add_argument('-r', '--remove',
+                        action='store_true', dest='remove', default=False,
+                        help='remove mass deletions')
+    parser.add_argument('-n', '--new',
+                        action='store_true', dest='new', default=False,
+                        help='reapply model even if cached')
+
+    n = parser.parse_args()
+
+    wiki2graph(n.title[0], n.remove, n.new)
 
 
-def save_to_cache(cachefile, model, content):
-    """Save graph, model, and content to cache"""
+def wiki2graph(title, remove, new):
+    """
+        Returns a networkx graph, the content of the latest revision, and the
+            PatchModel for Wikipedia page, title.
+        Setting remove to True removes bot reverses and vandalism from the data.
+        Setting new to True applies the model whether or not it is cached
+    """
+    file = title.replace(" ", "_") + ("_rem" if remove else "") + ".txt"
 
-    # Make cache folders if they don't exist
-    setup_cache()
+    # Check if files exist to avoid reapplying model
+    cached_model = read_cached_model(file)
+    if cached_model is not None:
+        return cached_model
 
-    # Writes graph to file
-    nx.write_gml(model.graph, "GMLs/" + cachefile)
-
-    # Write model to file
-    modelFile = open("models/" + cachefile, "w")
-    line = ""
-    for patch in model.model:
-        line += str(patch[0]) + ' ' + str(patch[1]) + '\n'
-    modelFile.write(line)
-    modelFile.close()
-
-    # Write content to file
-    contentFile = open("content/" + cachefile, "w")
-    contentFile.write(content)
-    contentFile.close()
+    # Apply model.
+    return applyWikiModel(title, remove)
 
 
-def applyModel2():
-    logging.basicConfig(filename='example.log', level=logging.INFO)
-    file = "src/acquire/engine/Engine.scala"
-    title = "engine"
+def read_cached_model(file):
+    graphfile = 'GMLs/' + file
+    contentfile = 'content/' + file
+    modelfile = 'models/' + file
 
-    print "Setting up distance comparison . . ."
+    if os.path.isdir('GMLs') and os.path.isfile(graphfile) and \
+            os.path.isdir('content') and os.path.isfile(contentfile) and \
+            os.path.isdir('models') and os.path.isfile(modelfile):
+        graph = readGraph(graphfile)
+        content = readContent(contentfile)
+        model = readModel(modelfile)
+        return (graph, content, model)
 
-    distance_model = BasicDistanceModel(title)
-
-    model = PatchModel()
-    prev = ""
-    pid = 0
-    offset = 0
-
-    git_repo = GitRepo("/home/rzou/acquire")
-    for (rvid, timestamp, content) in GitRepoIter(git_repo, file, offset):
-
-        # Get semantic distance
-        dist = distance_model.score(prev, content)
-
-        # Apply PatchModel
-        content = content.encode("ascii", "replace")
-        contentList = content.split()
-        prevList = prev.split()
-        ps = PatchSet.psdiff(pid, prevList, contentList)
-        pid += len(ps.patches)
-        for p in ps.patches:
-            # list of out-edges from rev
-            model.apply_patch(p, timestamp, dist)
-
-        prev = content
-
-    cachefile = title + '.txt'
-    save_to_cache(cachefile, model, content)
-    return model.graph, content, model.model
+    return None
 
 
 def applyWikiModel(title, remove):
@@ -91,6 +70,19 @@ def applyWikiModel(title, remove):
     semantic_model = SemanticDistanceModel(title)
     wiki_history_iterable = WikiIter(title, '0', remove)
     return buildPatchModel(wiki_history_iterable, semantic_model)
+
+
+def applyCodeModel():
+    file = "src/acquire/engine/Engine.scala"
+    title = "engine"
+
+    git_repo = GitRepo("/home/rzou/acquire")
+    offset = 0
+
+    code_iterable = GitRepoIter(git_repo, file, offset)
+    distance_model = BasicDistanceModel(title)
+
+    return buildPatchModel(code_iterable, distance_model)
 
 
 def buildPatchModel(doc_iterable, dist_model):
@@ -124,6 +116,34 @@ def buildPatchModel(doc_iterable, dist_model):
 
 def safe_title(title):
     return title.replace(" ", "_")
+
+
+def save_to_cache(cachefile, model, content):
+    """Save graph, model, and content to cache"""
+
+    # Make cache folders if they don't exist
+    if not os.path.isdir('GMLs'):
+        os.mkdir('GMLs')
+    if not os.path.isdir('models'):
+        os.mkdir('models')
+    if not os.path.isdir('content'):
+        os.mkdir('content')
+
+    # Writes graph to file
+    nx.write_gml(model.graph, "GMLs/" + cachefile)
+
+    # Write model to file
+    modelFile = open("models/" + cachefile, "w")
+    line = ""
+    for patch in model.model:
+        line += str(patch[0]) + ' ' + str(patch[1]) + '\n'
+    modelFile.write(line)
+    modelFile.close()
+
+    # Write content to file
+    contentFile = open("content/" + cachefile, "w")
+    contentFile.write(content)
+    contentFile.close()
 
 
 def readGraph(file):
@@ -161,50 +181,6 @@ def readModel(file):
         model.append((int(line[0]), int(line[1])))
     modelFile.close()
     return model
-
-
-def wiki2graph(title, remove, new):
-    """
-        Returns a networkx graph, the content of the latest revision, and the
-            PatchModel for Wikipedia page, title.
-        Setting remove to True removes bot reverses and vandalism from the data.
-        Setting new to True applies the model whether or not it is cached
-    """
-    file = title.replace(" ", "_") + ("_rem" if remove else "") + ".txt"
-
-    # Check if files exist to avoid reapplying model
-    if not new and \
-            os.path.isdir('GMLs') and os.path.isfile("GMLs/" + file) and \
-            os.path.isdir('content') and os.path.isfile("content/" + file) and \
-            os.path.isdir('models/') and os.path.isfile("models/" + file):
-
-        graph = readGraph('GMLs/' + file)
-        content = readContent('content/' + file)
-        model = readModel('models/' + file)
-        return (graph, content, model)
-
-    # Apply model.
-    # (graph, content, model) = applyModel2()
-    (graph, content, model) = applyWikiModel(title, remove)
-
-    return graph, content, model
-
-
-def parse_args():
-    """parse_args parses sys.argv for wiki2graph."""
-    # Help Menu
-    parser = argparse.ArgumentParser(usage='%prog [options] title')
-    parser.add_argument('title', nargs=1)
-    parser.add_argument('-r', '--remove',
-                        action='store_true', dest='remove', default=False,
-                        help='remove mass deletions')
-    parser.add_argument('-n', '--new',
-                        action='store_true', dest='new', default=False,
-                        help='reapply model even if cached')
-
-    n = parser.parse_args()
-
-    wiki2graph(n.title[0], n.remove, n.new)
 
 
 if __name__ == '__main__':

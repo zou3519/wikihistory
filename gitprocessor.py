@@ -48,6 +48,9 @@ class GitRepoIter(object):
         self.filepath = filepath
         self.offset = offset
 
+        # TODO: This comes from WikiIter. abstract the iterator
+        self.use_blacklist = False
+
         (exit_code, output, err) = self.git_repo.rev_list(
             path=filepath, reverse=True)
         debug("%d %s %s" % (exit_code, output, err))
