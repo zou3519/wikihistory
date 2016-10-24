@@ -43,9 +43,11 @@ def wiki2graph(title, remove, new):
     # Check if files exist to avoid reapplying model
     cached_model = read_cached_model(file)
     if cached_model is not None:
+        print "returning cached model"
         return cached_model
 
     # Apply model.
+    print "applying model"
     return applyWikiModel(title, remove)
 
 
@@ -72,15 +74,12 @@ def applyWikiModel(title, remove):
     return buildPatchModel(wiki_history_iterable, semantic_model)
 
 
-def applyCodeModel():
-    file = "src/acquire/engine/Engine.scala"
-    title = "engine"
+def applyCodeModel(name, source, repo_path):
+    git_repo = GitRepo(repo_path)
+    offset = 0  # Do not change, other offsets probably don't work.
 
-    git_repo = GitRepo("/home/rzou/acquire")
-    offset = 0
-
-    code_iterable = GitRepoIter(git_repo, file, offset)
-    distance_model = BasicDistanceModel(title)
+    code_iterable = GitRepoIter(name, git_repo, source, offset)
+    distance_model = BasicDistanceModel(name)
 
     return buildPatchModel(code_iterable, distance_model)
 
@@ -108,8 +107,9 @@ def buildPatchModel(doc_iterable, dist_model):
 
         prev_content = content
 
-    cachefile = safe_title(doc_iterable.title) + \
-        ('_rem.txt' if doc_iterable.use_blacklist else '.txt')
+    # todo: get rid of document_name and using_blacklist
+    cachefile = safe_title(doc_iterable.document_name) + \
+        ('_rem.txt' if doc_iterable.using_blacklist else '.txt')
     save_to_cache(cachefile, patch_model, content)
     return patch_model.graph, content, patch_model.model
 

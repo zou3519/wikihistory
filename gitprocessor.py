@@ -1,5 +1,6 @@
 import shlex
 import logging
+from wikiprocessor import HistoryIter
 from subprocess import Popen, PIPE
 
 
@@ -40,16 +41,18 @@ class GitRepo(object):
         return (exit_code, output, err)
 
 
-class GitRepoIter(object):
+class GitRepoIter(HistoryIter):
     """Iterates through revisions of a git version-controlled file """
 
-    def __init__(self, git_repo, filepath, offset):
+    def __init__(self, name, git_repo, filepath, offset):
         self.git_repo = git_repo
         self.filepath = filepath
+        self.name = name
         self.offset = offset
 
         # TODO: This comes from WikiIter. abstract the iterator
         self.use_blacklist = False
+        self.title = 'syscall'
 
         (exit_code, output, err) = self.git_repo.rev_list(
             path=filepath, reverse=True)
@@ -60,11 +63,20 @@ class GitRepoIter(object):
             self.commits = output.strip().split("\n")
         debug("Commits: " + str(self.commits))
 
+    @property
+    def document_name(self):
+        return self.name
+
+    @property
+    def using_blacklist(self):
+        return False
+
     def __iter__(self):
         return self
 
     def next(self):
         if self.offset >= len(self.commits):
+            print("Iterated over " + str(self.offset) + " commits")
             raise StopIteration()
 
         commit = self.commits[self.offset]

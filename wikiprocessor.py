@@ -3,9 +3,31 @@ import os
 import codecs
 import requests
 import timestamp as ts
+from abc import ABCMeta, abstractmethod
 
 
-class WikiIter(object):
+class HistoryIter(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def __iter__(self):
+        """Get an iterator"""
+        return
+
+    @property
+    @abstractmethod
+    def document_name(self):
+        """Returns the name used to identify what is being iterated over"""
+        return
+
+    @property
+    @abstractmethod
+    def using_blacklist(self):
+        """Is this iterator using a blacklist?"""
+        return
+
+
+class WikiIter(HistoryIter):
     """Iterates through revisions of a Wiki article"""
 
     def __init__(self, title, offset, remove):
@@ -28,6 +50,14 @@ class WikiIter(object):
 
         cached_location = 'full_histories/%s' % self.title.replace(' ', '_')
         return os.path.isdir(cached_location)
+
+    @property
+    def doc_name(self):
+        return self.title
+
+    @property
+    def using_blacklist(self):
+        return self.use_blacklist
 
     def __iter__(self):
         title = self.title
