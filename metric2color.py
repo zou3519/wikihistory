@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import re
 import os
 import wiki2graph as w2g
 
@@ -352,6 +353,22 @@ def HUSLPercentile(model, metricDict):
     return colors
 
 
+def beginning_whitespace(string):
+    whitespace_matcher = re.compile(r'^\s+')
+    match = whitespace_matcher.search(string)
+    return '' if match is None else match.group(0)
+
+
+def whitespace2html(whitespace):
+    result = ''
+    for char in whitespace:
+        if char == ' ':
+            result += '&nbsp'
+        elif char == '\t':
+            result += 8 * '&nbsp'
+    return result
+
+
 def colorHUSL(title, remove, metricName, model, content, colors):
     """
         Writes the most recent revision to a .html file based on the dictionary
@@ -382,20 +399,28 @@ def colorHUSL(title, remove, metricName, model, content, colors):
         ".c3 {\n\tbackground-color: #abdda4;\n\tcolor: black;\n}\n")
     colorFile.write(".c4 {\n\tbackground-color: #2b83ba;\n\tcolor: black;}\n")
 
+    # For code analysis: comment out if necessary
+    code = True
+    if code:
+        colorFile.write(
+            "p {\n\tfont-family: \"Courier New\", Courier, monospace;\n\tline-height: 20%;\n}\n")
+
     colorFile.write("</style>\n</head>\n")
 
     # Write content
     colorFile.write("<body>\n")
 
     content = content.split("\n")
-    content = [line.split() for line in content]
+    content = [(line.split(), whitespace2html(beginning_whitespace(line))) for line in content]
+    # content = [re.split(r'(\s+)', line) for line in content]
+    # print content
 
     pos = 0
     dif = model[pos][0]
     color = colors[model[pos][1]]
 
-    for line in content:
-        current = "<p><span class=" + color + ">"
+    for (line, starting_whitespace) in content:
+        current = "<p><span class=" + color + ">" + (starting_whitespace if code else '')
         for i in range(len(line)):
             if dif == 0:
                 while dif == 0:
