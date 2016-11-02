@@ -1,3 +1,10 @@
 cache/
 data/
+GMLs
+content
+heatmaps
+models
+webgraphs
 *pyc
+*.log
+*.tmp

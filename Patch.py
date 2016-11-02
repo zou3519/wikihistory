@@ -3,6 +3,7 @@
 import bisect
 import difflib
 import networkx as nx
+import json
 
 # Models individual insertions and deletions as Patches, revisions as
 #   PatchSets, and the history of ownership of text as a PatchModel
@@ -22,7 +23,7 @@ class Patch:
             representing a single edit.
     """
 
-    def __init__(self, pid, ptype, start, end):
+    def __init__(self, pid, ptype, start, end, content):
         assert ptype == PatchType.ADD or ptype == PatchType.DELETE
         assert start >= 0
         assert end > start
@@ -32,6 +33,7 @@ class Patch:
         self.start = start
         self.end = end
         self.length = end - start
+        self.content = "".join([line[1:] for line in content])
 
 
 class PatchSet:
@@ -59,13 +61,17 @@ class PatchSet:
         # Obtain a list of differences between the texts
         diff = difflib.ndiff(old, new)
 
+        # debugging
+        diff = [line for line in diff]
+
         # Split the differences into Patches
         index = 0
         for line in diff:
             if line[0] == ' ':
                 # If equal, terminate any current patch.
                 if ptype is not None:
-                    ps.append_patch(Patch(pid, ptype, start, index))
+                    ps.append_patch(
+                        Patch(pid, ptype, start, index, diff[start:index]))
                     pid += 1
                     if ptype == PatchType.DELETE:
                         index = start
@@ -74,7 +80,8 @@ class PatchSet:
             elif line[0] == '+':
                 # If addition, terminate any current DELETE patch.
                 if ptype == PatchType.DELETE:
-                    ps.append_patch(Patch(pid, ptype, start, index))
+                    ps.append_patch(
+                        Patch(pid, ptype, start, index, diff[start:index]))
                     pid += 1
                     index = start
                     ptype = None
@@ -86,7 +93,8 @@ class PatchSet:
             elif line[0] == '-':
                 # If deletion, terminate any current ADD patch.
                 if ptype == PatchType.ADD:
-                    ps.append_patch(Patch(pid, ptype, start, index))
+                    ps.append_patch(
+                        Patch(pid, ptype, start, index, diff[start:index]))
                     pid += 1
                     ptype = None
                 # Begin a new DELETE patch, or extend an existing one.
@@ -98,8 +106,10 @@ class PatchSet:
 
         # Terminate and add any remaining patch.
         if ptype is not None:
-            ps.append_patch(Patch(pid, ptype, start, index))
+            ps.append_patch(Patch(pid, ptype, start, index, diff[start:index]))
 
+        # print "Patch: "
+        # print "".join([line[1:] for line in diff[start:index]])
         return ps
 
     def append_patch(self, p):
@@ -119,6 +129,7 @@ class PatchModel:
             Adds Patch, p, to the model and graph
         """
         self.graph.add_node(p.pid, time=timestamp, size=p.length)
+        self.graph.node[p.pid]['patch'] = json.dumps(p.__dict__)
         if not self.model:
             self.model.append((p.end, p.pid))
 
@@ -132,7 +143,7 @@ class PatchModel:
             # Add dependencies
 
             # Case 1: Insertion into the middle of one edit
-            if sin == ein:
+            if sin == ein:  # startindex == endindex
                 pid = self.model[sin][1]
                 if sin == 0:
                     start = 0
@@ -249,10 +260,10 @@ class PatchModel:
             #   or end where p ends.
             if sin != bisect.bisect_left(
                [end for (end, pid) in self.model], p.start):
-                   sin -= 1
+                sin -= 1
             if ein != bisect.bisect_right(
                     [end for (end, pid) in self.model], p.end):
-                    ein += 1
+                ein += 1
 
             # Shrink the preceding span and remove intermediates if present
             (end, pid) = self.model[sin]
