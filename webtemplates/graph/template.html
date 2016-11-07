@@ -71,9 +71,41 @@
 
 				});
 
+				function par(text) {
+					return '<p>' + text + '</p>'
+				}
+
+				function prettydata(data, field, label) {
+					return par(label + data[field])
+				}
+
 				// just use the regular qtip api but on cy elements
-				cy.elements().qtip({
-					content: function(){ return "Node: " + JSON.stringify(this._private.data) },
+				cy.nodes().qtip({
+					content: function(){ 
+						data = this._private.data;
+						patch = JSON.parse(data['patch']);
+						html = '';
+						html += '<h1>Metadata</h1>'
+
+						// seconds since epoch 
+						var utcSeconds = data.time;
+						var d = new Date(0); // The 0 there is the key, which sets the date to the epoch
+						d.setUTCSeconds(utcSeconds);
+
+						html += prettydata(patch, 'pid', 'pid: ');
+						html += '<p>' + d + '</p>';
+						html += '<p>' + patch['revision'] + '</p>';
+						html += '<p>' + (patch['ptype'] === 0 ? 'add' : 'delete') + ' (' + patch['start'] + ',' + patch['end'] + ')<\p>';
+						html += '<h1>Content</h1>';
+						html += '<p>';
+						arr = eval(patch['content']);
+						for (i = 0; i < arr.length; i++) {
+							html += arr[i] + "<sup>" + (patch.start + i) + "</sup>"
+						}
+						html += '</p>';
+						// html += '<p>' + patch['content'] + '</p>'
+						return html;
+					},
 					position: {
 						my: 'top center',
 						at: 'bottom center'
@@ -87,15 +119,18 @@
 					}
 				});
 
-				// call on core
-				cy.qtip({
-					content: 'Example qTip on core bg',
+				cy.edges().qtip({
+					content: function(){ 
+						data = this._private.data;
+						html = '';
+						html += '<h1>Edge Metadata</h1>'
+						html += prettydata(data, 'dist', 'dist: ')
+						html += prettydata(data, 'prob', 'pr: ')
+						return html;
+					},
 					position: {
 						my: 'top center',
 						at: 'bottom center'
-					},
-					show: {
-						cyBgOnly: true
 					},
 					style: {
 						classes: 'qtip-bootstrap',
@@ -111,7 +146,7 @@
 	</head>
 
 	<body>
-		<h1>[cytoscape.js-qtip.js] Cytoscape.js qTip Demo</h1>
+		<h1>[pomelo] Patch Model Visualization</h1>
 
 		<div id="cy"></div>
 

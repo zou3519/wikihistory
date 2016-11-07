@@ -11,6 +11,7 @@ import argparse
 import json
 import errno
 import shutil
+import os
 from string import Template
 from networkx.readwrite import json_graph
 from wiki2graph import readGraph
@@ -23,7 +24,7 @@ graph_generation_path = 'webgraphs/'
 
 def build_viz_from_file(name, gml_file):
     nx_graph = readGraph(gml_file)
-    return build_viz_from_graph(name,nx_graph)
+    return build_viz_from_graph(name, nx_graph)
 
 
 def build_viz_from_graph(name, nx_graph):
@@ -57,6 +58,9 @@ def graph_to_cytoscope(nx_graph):
 
 
 def copy(src, dest):
+    if os.path.exists(dest):
+        shutil.rmtree(dest)
+
     try:
         shutil.copytree(src, dest)
     except OSError as e:

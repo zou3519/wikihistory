@@ -11,6 +11,26 @@ MONTH = 43200
 YEAR = 525600
 
 
+def sumHeight(graph):
+    node_list = nx.topological_sort(graph, reverse=True)
+    height_dict = {}
+
+    for node in node_list:
+        if type(node) != int:
+            node = int(node.decode("utf-8"))
+
+        height = 0
+        for (src, dst, prob) in graph.out_edges_iter(node, data='prob'):
+            if type(dst) != int:
+                dst = int(dst.decode("utf-8"))
+                src = int(src.decode("utf-8"))
+            height += height_dict[dst] + graph.edge[src][dst]['dist']*prob
+
+        height_dict[node] = height
+
+    return height_dict
+
+
 def tHeight(graph):
     """
         Returns a dictionary of the vertices and their weighted heights 

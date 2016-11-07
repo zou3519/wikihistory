@@ -98,7 +98,7 @@ def buildPatchModel(doc_iterable, dist_model):
         # Compute patches
         content_list = content.split()
         prev_content_list = prev_content.split()
-        patch_set = PatchSet.psdiff(patchid, prev_content_list, content_list)
+        patch_set = PatchSet.psdiff(patchid, prev_content_list, content_list, rvid)
         patchid += len(patch_set.patches)
 
         # Present patches to patch model

@@ -48,7 +48,8 @@ def code2color(name, source, repo_path):
 
     # Create height model
     (graph, content, model) = model
-    metricDict = metric.tHeight(graph)
+    metricDict = metric.sumHeight(graph)
+    print metricDict
 
     print "Drawing graph..."
 
@@ -58,8 +59,8 @@ def code2color(name, source, repo_path):
     # nx.draw_networkx_labels(graph, pos, labels=node_labels)
     # plt.show()
 
-    data = nx_to_cytoscape(graph)
-    print data
+    # data = nx_to_cytoscape(graph)
+    # print data
 
     m2c.metric2color(name, False, name, metricDict)
 

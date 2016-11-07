@@ -23,7 +23,7 @@ class Patch:
             representing a single edit.
     """
 
-    def __init__(self, pid, ptype, start, end, content):
+    def __init__(self, pid, ptype, start, end, content, revision):
         assert ptype == PatchType.ADD or ptype == PatchType.DELETE
         assert start >= 0
         assert end > start
@@ -33,7 +33,8 @@ class Patch:
         self.start = start
         self.end = end
         self.length = end - start
-        self.content = "".join([line[1:] for line in content])
+        self.content = str([line[1:] for line in content]) #"".join([line[1:] for line in content])
+        self.revision = revision
 
 
 class PatchSet:
@@ -48,7 +49,7 @@ class PatchSet:
         self.patches = []
 
     @classmethod
-    def psdiff(cls, startid, old, new):
+    def psdiff(cls, startid, old, new, rvid):
         """
             Compares 2 vesions of text at a word level to identify 
                 the individual edits (insertions and deletions).
@@ -71,7 +72,7 @@ class PatchSet:
                 # If equal, terminate any current patch.
                 if ptype is not None:
                     ps.append_patch(
-                        Patch(pid, ptype, start, index, diff[start:index]))
+                        Patch(pid, ptype, start, index, diff[start:index], rvid))
                     pid += 1
                     if ptype == PatchType.DELETE:
                         index = start
@@ -81,7 +82,7 @@ class PatchSet:
                 # If addition, terminate any current DELETE patch.
                 if ptype == PatchType.DELETE:
                     ps.append_patch(
-                        Patch(pid, ptype, start, index, diff[start:index]))
+                        Patch(pid, ptype, start, index, diff[start:index], rvid))
                     pid += 1
                     index = start
                     ptype = None
@@ -94,7 +95,7 @@ class PatchSet:
                 # If deletion, terminate any current ADD patch.
                 if ptype == PatchType.ADD:
                     ps.append_patch(
-                        Patch(pid, ptype, start, index, diff[start:index]))
+                        Patch(pid, ptype, start, index, diff[start:index], rvid))
                     pid += 1
                     ptype = None
                 # Begin a new DELETE patch, or extend an existing one.
@@ -106,7 +107,7 @@ class PatchSet:
 
         # Terminate and add any remaining patch.
         if ptype is not None:
-            ps.append_patch(Patch(pid, ptype, start, index, diff[start:index]))
+            ps.append_patch(Patch(pid, ptype, start, index, diff[start:index], rvid))
 
         # print "Patch: "
         # print "".join([line[1:] for line in diff[start:index]])
